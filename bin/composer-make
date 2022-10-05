@@ -1,0 +1,11 @@
+#!/bin/bash
+if test $COMPOSER_ROOT -eq ""
+then
+	echo "\$COMPOSER_ROOT appears to be undefined!"
+	exit
+fi
+mkdir -p verilator
+cmake $COMPOSER_ROOT/Composer-Verilator -B verilator
+cd verilator && make
+ln -s Composer-Verilator ../composer-sim-exec
+chmod u+x ../composer-sim-exec
