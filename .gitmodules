@@ -1,9 +1,12 @@
 [submodule "Composer_Verilator"]
 	path = Composer_Verilator
 	url = git@github.com:ChrisKjellqvist/Composer_Verilator.git
+	branch = master
 [submodule "Composer-Hardware"]
 	path = Composer-Hardware
 	url = git@github.com:ChrisKjellqvist/Composer-Hardware.git
+	branch = master
 [submodule "Composer-Software"]
 	path = Composer-Software
 	url = git@github.com:ChrisKjellqvist/Composer-Software.git
+	branch = master

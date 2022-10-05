@@ -35,10 +35,9 @@ git submodule update --init &> /dev/null
 if test $install_yaml -eq 1
 then
 	echo "Installing yaml-cpp locally..."
-	git clone https://github.com/jbeder/yaml-cpp.git &> /dev/null
+	git clone https://github.com/jbeder/yaml-cpp.git
 	rootdir=`pwd`
-	echo "$rootdir"
-	mkdir $(rootdir)".local" && cd yaml-cpp && mkdir build && cd build && cmake .. -q -DCMAKE_INSTALL_PREFIX="$rootdir/.local" && make install && cd $rootdir
+	mkdir -p "$rootdir/.local" && cd yaml-cpp && mkdir -p build && cd build && cmake .. -DCMAKE_INSTALL_PREFIX="$rootdir/.local" && make install && cd $rootdir && rm -rf yaml-cpp &> /dev/null
 	echo "==========================================================================="
 	echo "----- Make sure to add 'export YAML_DIR=$rootdir/.local' to your bashrc----"
 	echo "==========================================================================="
@@ -50,4 +49,3 @@ then
 fi
 echo "----- Make sure to add 'export COMPOSER_ROOT=`pwd`/bin to your bash rc-----"
 echo "==========================================================================="
-
