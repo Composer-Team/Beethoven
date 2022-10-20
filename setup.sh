@@ -1,7 +1,6 @@
 #!/bin/bash
 
 branch=master
-install_yaml=0
 prefix=https://www.github.com/
 
 
@@ -10,10 +9,6 @@ for i in "$@"; do
 	case $i in
 		-b=*)
 			branch="${i#*=}"
-			shift
-			;;
-		-yaml)
-			install_yaml=1
 			shift
 			;;
 		-ssh)
@@ -32,20 +27,6 @@ for i in "$@"; do
 done
 
 echo "branch is $branch"
-echo "install yaml is $install_yaml"
-
-if test $install_yaml -eq 1 ;
-then
-	echo "Installing yaml-cpp locally..."
-	git clone -q https://github.com/jbeder/yaml-cpp.git
-	rootdir=`pwd`
-	mkdir -p "$rootdir/.local" && cd yaml-cpp && mkdir -p build && cd build && cmake .. -DCMAKE_INSTALL_PREFIX="$rootdir/.local" && make install && cd $rootdir && rm -rf yaml-cpp
-	echo ""
-	echo "==========================================================================="
-	echo "----- Make sure to add 'export YAML_DIR=$rootdir/.local' to your bashrc----"
-	echo "==========================================================================="
-	echo ""
-fi
 
 git clone -q "$prefix"ChrisKjellqvist/Composer-Hardware.git && cd Composer-Hardware && git checkout -q $branch && chmod u+x setup.sh && ./setup.sh && cd ..
 git clone -q "$prefix"ChrisKjellqvist/Composer-Software.git && cd Composer-Software && git checkout -q $branch && cd ..
