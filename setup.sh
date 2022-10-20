@@ -53,6 +53,7 @@ git clone -q "$prefix"ChrisKjellqvist/Composer_Verilator.git && cd Composer_Veri
 
 echo ""
 echo "==========================================================================="
-echo "----- Make sure to add 'export COMPOSER_ROOT=`pwd`/bin to your bash rc-----"
+echo "----- Make sure to add 'export COMPOSER_ROOT=`pwd` to your bash rc---------"
+echo "-----          and add '`pwd`/bin' to your PATH variable ------------------"
 echo "==========================================================================="
 echo ""
