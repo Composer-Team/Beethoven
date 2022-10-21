@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(LFSRTest)
 
 set(CMAKE_CXX_STANDARD 17)
-find_package(composer 1.0.1 EXACT REQUIRED)
+find_package(composer 1.0.2 EXACT REQUIRED)
 include_directories($ENV{COMPOSER_ROOT}/Composer-Hardware/vsim/generated-src)
 add_executable(allo allocate_test.cc)
 target_link_libraries(allo PUBLIC APEX::composer)
