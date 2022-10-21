@@ -20,11 +20,12 @@ int main() {
   }
   // copy data to fpga
   fpga.copy_to_fpga(fpga_read, my_array);
+  printf("Sending addresses %16llx and %16llx to fpga\n", fpga_read.getFpgaAddr(), fpga_write.getFpgaAddr());
 
   // this interface could use some work...
   // though some notable improvements: attempting to wait for these commands will issue an error
-  rocc_cmd::addr_cmd(VectorSystem_ID, 0, 0, fpga_read).send();
-  rocc_cmd::addr_cmd(VectorSystem_ID, 0, 1, fpga_write).send();
+  rocc_cmd::addr_cmd(VectorSystem_ID, 0, 0, channel::read, fpga_read).send();
+  rocc_cmd::addr_cmd(VectorSystem_ID, 0, 0, channel::write, fpga_write).send();
 
   // send command and wait for response
   rocc_cmd::start_cmd(VectorSystem_ID, 0, 0, true,
