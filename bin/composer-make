@@ -1,9 +1,33 @@
-#!/bin/bash
-if test $COMPOSER_ROOT -eq "" ;
-then
-	echo "\$COMPOSER_ROOT appears to be undefined!"
-	exit
-fi
-mkdir -p verilator
-cmake $COMPOSER_ROOT/Composer_Verilator -B verilator -DCMAKE_BUILD_TYPE=Debug
-cd verilator && make
+#!python3
+import os
+
+cr = os.environ.get("COMPOSER_ROOT")
+if cr is None:
+    print("COMPOSER_ROOT appears to not be defined in your environment. Please define.")
+    exit(1)
+
+opts = {}
+if os.path.exists("composer.cfg"):
+    with open("composer.cfg") as f:
+        for ln in f.readlines():
+            spl = [q.strip() for q in ln.strip().split(" ")]
+            opts.update({spl[0]: spl[1]})
+else:
+    opt = input("'composer.cfg' file not found.\n"
+                "Which backend?\n"
+                "0 - Verilator (Simulation)\n"
+                "1 - AWS FPGA\n").strip()
+    if opt == '0':
+        opt = 'verilator'
+    elif opt == '1':
+        opt = 'aws'
+    else:
+        print("invalid response")
+        exit(1)
+    opts.update({'backend': opt})
+
+if opts['backend'] == 'verilator':
+    os.system(f"cmake {cr}/Composer_Verilator -B verilator -DCMAKE_BUILD_TYPE=Release && make -C verilator")
+else:
+    # make shell
+    pass
