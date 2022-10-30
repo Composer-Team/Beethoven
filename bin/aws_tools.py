@@ -168,7 +168,11 @@ def create_aws_shell():
                     g.write(f"\t{words[0]} ({wire}),\n")
                 wire_id = wire_id + 1
             else:
-                g.write(ln)
+                # bug-fix within existing aws code ???
+                if ln.strip().split()[0] == '.ddr_sh_state_int0':
+                    g.write(ln[:-1] + ",\n")
+                else:
+                    g.write(ln)
         elif state == 3:
             strip = ln.strip()
             if ndram < 4:
