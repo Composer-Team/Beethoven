@@ -117,13 +117,17 @@ def create_aws_shell():
                         exit(1)
 
                 g.write("ComposerTop myTop(\n")
-                for pr in ct_io:
+                for i, pr in enumerate(ct_io):
                     if pr['name'] == 'clock':
                         g.write(f"\t.clock(clk),\n")
                     elif pr['name'] == 'reset':
                         g.write(f"\t.reset(sync_rst_n),\n")
                     else:
-                        g.write(f"\t.{pr['name']}({pr['wire']}),\n")
+                        g.write(f"\t.{pr['name']}({pr['wire']})")
+                        if i == len(ct_io)-1:
+                            g.write("\n")
+                        else:
+                            g.write(",\n")
                 g.write(');\n')
                 g.flush()
                 # Concatenate signals into coherent names
