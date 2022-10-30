@@ -60,7 +60,7 @@ elif opts['backend'] == 'aws':
                 "`define CL_SH_ID1 32'h1D51_FEDC\n")
     tcl_name = "build/scripts/synth_composer_aws.tcl"
     os.system(f"mv build/scripts/synth_cl_hello_world.tcl {tcl_name} &&"
-              f" sed -i 's/\\?v/sv/g' {tcl_name}")
+              f" sed -i 's/\\?v/sv/g' {tcl_name} && rm -f design/cl_template.sv")
     pass
 else:
     print("operation not recognized")

@@ -203,4 +203,4 @@ def create_aws_shell():
     f.close()
     g.close()
     f = "composer_aws.sv"
-    os.system(f"sed -i 's/DDR_\\(.\\)_PRESENT(0)/DDR_\\1_PRESENT(DDR_\\1_ABSENT)/g' {f}")
+    os.system(f"sed -i 's/DDR_\\(.\\)_PRESENT(0)/DDR_\\1_PRESENT(DDR_\\1_PRESENT)/g' {f}")
