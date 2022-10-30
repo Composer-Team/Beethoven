@@ -73,7 +73,7 @@ def create_aws_shell():
         g.write(f"`ifndef DDR_{letter}_ABSENT\n"
                 f"\t`define DDR_{letter}_PRESENT 1\n"
                 f"`else\n"
-                f"`define DDR_{letter}_PRESENT 0\n"
+                f"`\tdefine DDR_{letter}_PRESENT 0\n"
                 f"`endif\n")
     g.write("`endif\n")
     flns = f.readlines()
@@ -199,4 +199,4 @@ def create_aws_shell():
     f.close()
     g.close()
     f = "composer_aws.sv"
-    os.system(f"sed -i 's/DDR_\\(.\\)_PRESENT(0)/DDR_\\1_PRESENT(DDR_\\1_ABSENT) B/g' {f}")
+    os.system(f"sed -i 's/DDR_\\(.\\)_PRESENT(0)/DDR_\\1_PRESENT(DDR_\\1_ABSENT)/g' {f}")
