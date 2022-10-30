@@ -2,7 +2,7 @@ import os
 
 
 def create_aws_shell():
-    f = open(f"{os.environ.get('COMPOSER_AWS_SDK_DIR')}/hdk/common/shell_v04261818/new_cl_template/"
+    f = open(f"{os.environ.get('COMPOSER_AWS_SDK_DIR')}/hdk/common/shell_stable/new_cl_template/"
              f"design/cl_template.sv")
     ct = open(f"{os.environ.get('COMPOSER_ROOT')}/Composer-Hardware/vsim/generated-src/composer.v")
     # scrape ios from composertop module
@@ -45,7 +45,6 @@ def create_aws_shell():
                 dest = name
             idx = dest.rfind('_')
             dest = (dest[:idx] + dest[idx+1:]).split('_')[-1]
-            print(f"{dest}")
             ct_io.append({'width': width,
                           'name': name,
                           'wire': wire_name,
@@ -64,6 +63,7 @@ def create_aws_shell():
     assert len(axil_io) > 0
 
     g = open("composer_aws.v", 'w')
+    g.write(f"`include composer.v\n")
     flns = f.readlines()
     # copy everything before the sh_ddr module
     state = 0
@@ -72,7 +72,10 @@ def create_aws_shell():
 
     for ln in flns:
         if state == 0:
-            g.write(ln)
+            if ln[:18] == 'module cl_template':
+                g.write("module composer_aws" + ln[18:])
+            else:
+                g.write(ln)
             if ln.strip() == ');':
                 # init ALL composer stuff
                 for pr in ct_io:
@@ -84,8 +87,6 @@ def create_aws_shell():
                 for pr in ct_io:
                     if pr['name'] == 'clock' or pr['name'] == 'reset':
                         continue
-                    # print(pr['name'])
-                    # print(pr['setname'])
                     key = pr['name'].split('_')[0] + '_' + pr['setname']
                     if concats.get(key) is None:
                         concats[key] = ([pr['wire']], pr['width'])
@@ -109,7 +110,6 @@ def create_aws_shell():
                             g.write(f"{width}'b0, ")
                         g.write(f"{width}'b0" + "};\n")
 
-                print(concats)
 
                 g.write("ComposerTop(\n")
                 for pr in ct_io:
@@ -128,7 +128,6 @@ def create_aws_shell():
             if ln.strip()[:6] == 'sh_ddr':
                 g.write(ln)
                 state = 2
-                print("got to sh_ddr")
         elif state == 2:
             prefix = ln.strip()
             if len(prefix) < 10:
@@ -148,7 +147,6 @@ def create_aws_shell():
                     wire = "axi4_" + axi_part
                     g.write(f"\t{words[0]} ({wire}),\n")
                 wire_id = wire_id + 1
-                print(f"\t{ln[:-1]} {words}")
             else:
                 g.write(ln)
         elif state == 3:
@@ -182,4 +180,3 @@ def create_aws_shell():
     f.close()
     g.close()
 
-    print(sh_ddr_module_pairs)

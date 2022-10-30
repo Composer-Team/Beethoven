@@ -1,4 +1,4 @@
-#!python3
+#!/usr/bin/python3
 import os
 import aws_tools
 
@@ -26,14 +26,37 @@ else:
         print("invalid response")
         exit(1)
     opts.update({'backend': opt})
-    with open("composer.cfg") as f:
+    with open("composer.cfg", 'w') as f:
         f.write(f"backend {opt}")
     print("Your choice have been recorded in `composer.cfg`")
 
 if opts['backend'] == 'verilator':
     os.system(f"cmake {cr}/Composer_Verilator -B verilator -DCMAKE_BUILD_TYPE=Release && make -C verilator")
 elif opts['backend'] == 'aws':
+    aws = os.environ.get("COMPOSER_AWS_SDK_DIR")
+    if aws is None:
+        print("COMPOSER_AWS_SDK_DIR not defined. Please clone aws-fpga and perform necessary setup")
+        exit(1)
+    hdk_dir = os.environ.get("HDK_DIR")
+    if hdk_dir is None:
+        print("HDK_DIR not set. This is usually set as part of aws-fpga setup. Please source hdk_setup.sh in the aws-fpga repo before running this.")
+        exit(1)
     aws_tools.create_aws_shell()
+    path = f"{hdk_dir}/cl/developer_designs/prepare_new_cl.sh"
+    os.system(f"{path} && mv composer_aws.v design/")
+    print(f"Setting CL_DIR to {os.getcwd()} . For future runs, make sure to either export this variable or run this script again.")
+    os.environ["CL_DIR"] = os.getcwd()
+    os.system("sed -i 's/cl_hello_world/composer_aws/g' build/scripts/create_dcp_from_cl.tcl && mkdir -p build/src_post_encryption && mkdir -p build/reports && mkdir -p build/checkpoints/to_aws")
+    os.system("sed -i 's/cl_hello_world.sv/composer_aws.v/g' build/scripts/encrypt.tcl && "
+              "sed -i 's/..\/common\/design\/cl_common_defines.vh/design\/cl_ports.vh/g' build/scripts/encrypt.tcl")
+    os.system("sed '34d' build/scripts/encrypt.tcl > tmp")
+    os.system("mv tmp build/scripts/encrypt.tcl")
+    os.system(f"cp {hdk_dir}/common/shell_stable/design/interfaces/cl_ports.vh design/")
+    os.system("cp generated-src/composer.v design/composer.v")
+    with open("design/cl_id_defines.vh", 'w') as f:
+        f.write("`define CL_SH_ID0 32'hF002_1D0F\n"
+                "`define CL_SH_ID1 32'h1D51_FEDC\n")
+    pass
 else:
     print("operation not recognized")
 
