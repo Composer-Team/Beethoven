@@ -58,8 +58,8 @@ elif opts['backend'] == 'aws':
     with open("design/cl_id_defines.vh", 'w') as f:
         f.write("`define CL_SH_ID0 32'hF002_1D0F\n"
                 "`define CL_SH_ID1 32'h1D51_FEDC\n")
-    tcl_name = "build/scripts/synth_cl_composer_aws.tcl"
-    os.system(f"mv build/scripts/synth_hello_world.tcl {tcl_name} &&"
+    tcl_name = "build/scripts/synth_composer_aws.tcl"
+    os.system(f"mv build/scripts/synth_cl_hello_world.tcl {tcl_name} &&"
               f" sed -i 's/\\?v/sv/g' {tcl_name}")
     pass
 else:
