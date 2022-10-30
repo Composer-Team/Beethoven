@@ -58,7 +58,6 @@ elif opts['backend'] == 'aws':
     with open("design/cl_id_defines.vh", 'w') as f:
         f.write("`define CL_SH_ID0 32'hF002_1D0F\n"
                 "`define CL_SH_ID1 32'h1D51_FEDC\n")
-    os.system("sed -i 's/cl_template/composer_aws/g' design/cl_template_defines.vh")
     pass
 else:
     print("operation not recognized")

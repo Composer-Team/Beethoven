@@ -40,11 +40,11 @@ def create_aws_shell():
             wire_id = wire_id + 1
             idx = name.find('bits_')
             if idx != -1:
-                dest = name[:idx] + name[idx+5:]
+                dest = name[:idx] + name[idx + 5:]
             else:
                 dest = name
             idx = dest.rfind('_')
-            dest = (dest[:idx] + dest[idx+1:]).split('_')[-1]
+            dest = (dest[:idx] + dest[idx + 1:]).split('_')[-1]
             ct_io.append({'width': width,
                           'name': name,
                           'wire': wire_name,
@@ -63,7 +63,19 @@ def create_aws_shell():
     assert len(axil_io) > 0
 
     g = open("composer_aws.sv", 'w')
-    g.write(f"`include \"composer.v\"\n")
+    g.write(f"`include \"composer.v\"\n"
+            f"`ifndef COMPOSER_DEFINES\n"
+            f"`define COMPOSER_DEFINES\n"
+            f"`define CL_NAME composer_aws\n"
+            f"`define FPGA_LESS_RST\n"
+            f"`define NO_XDMA\n")
+    for letter in ['A', 'B', 'D']:
+        g.write(f"`ifndef DDR_{letter}_ABSENT\n"
+                f"\t`define DDR_{letter}_PRESENT 1\n"
+                f"`else\n"
+                f"`define DDR_{letter}_PRESENT 0\n"
+                f"`endif\n")
+    g.write("`endif\n")
     flns = f.readlines()
     # copy everything before the sh_ddr module
     state = 0
@@ -83,7 +95,7 @@ def create_aws_shell():
                         if pr['width'] == 1:
                             g.write(f"wire {pr['wire']};\n")
                         else:
-                            g.write(f"wire [{int(pr['width'])-1}:0] {pr['wire']};\n")
+                            g.write(f"wire [{int(pr['width']) - 1}:0] {pr['wire']};\n")
                 for pr in ct_io:
                     if pr['name'] == 'clock' or pr['name'] == 'reset':
                         continue
@@ -99,19 +111,19 @@ def create_aws_shell():
                         if width == 1:
                             g.write(f"wire {k};\n")
                         else:
-                            g.write(f"wire [{width-1}:0] {k};\n")
+                            g.write(f"wire [{width - 1}:0] {k};\n")
                         g.write(f"assign {k} = {lst[0]};\n")
                     elif k[:4] == 'axi4':
                         if width == 1:
                             g.write(f'wire [2:0] {k};\n')
                         else:
-                            g.write(f'wire [{width-1}:0] {k} [2:0];\n')
+                            g.write(f'wire [{width - 1}:0] {k} [2:0];\n')
                         # first 3 go in the sh_ddr module, last goes directly to shell
                         maxidx = min(3, len(lst))
                         for i, ele in enumerate(lst[:maxidx]):
                             g.write(f"assign {k}[{i}] = {ele};\n")
-                        for i in range(3-len(lst)-1):
-                            g.write(f"assign {k}[{3-i}] = {width}'b0;\n")
+                        for i in range(3 - len(lst) - 1):
+                            g.write(f"assign {k}[{3 - i}] = {width}'b0;\n")
                     else:
                         print("GOT A WEIRD KEY: " + str(k))
                         exit(1)
@@ -124,7 +136,7 @@ def create_aws_shell():
                         g.write(f"\t.reset(sync_rst_n),\n")
                     else:
                         g.write(f"\t.{pr['name']}({pr['wire']})")
-                        if i == len(ct_io)-1:
+                        if i == len(ct_io) - 1:
                             g.write("\n")
                         else:
                             g.write(",\n")
@@ -167,7 +179,6 @@ def create_aws_shell():
                 g.write(ln)
                 continue
             if strip[:6] != 'assign':
-
                 g.write(ln)
                 continue
             spl = ln.split()
@@ -177,7 +188,7 @@ def create_aws_shell():
                 g.write(ln)
                 continue
             idx = name.rfind('_')
-            part = name[idx+1:]
+            part = name[idx + 1:]
             if part == 'wid':
                 # wid is only part of AXI3
                 g.write(ln)
@@ -188,9 +199,4 @@ def create_aws_shell():
     f.close()
     g.close()
     f = "composer_aws.sv"
-    if ndram > 0:
-        os.system(f"sed -i 's/DDR_A_PRESENT\\(0/DDR_A_PRESENT(1/g' {f}")
-    if ndram > 1:
-        os.system(f"sed -i 's/DDR_A_PRESENT\\(0/DDR_B_PRESENT(1/g' {f}")
-    if ndram > 3:
-        os.system(f"sed -i 's/DDR_A_PRESENT\\(0/DDR_D_PRESENT(1/g' {f}")
+    os.system(f"sed -i 's/DDR_\\(.\\)_PRESENT(0)/DDR_\\1_PRESENT(DDR_\\1_ABSENT) B/g' {f}")
