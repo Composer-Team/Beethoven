@@ -95,16 +95,23 @@ def create_aws_shell():
                         concats[key] = (concats[key][0] + [pr['wire']], pr['width'])
                 for k in concats.keys():
                     lst, width = concats[k]
-                    if width == 1:
-                        g.write(f'wire [2:0] {k};\n')
+                    if k[:3] == 'ocl':
+                        g.write(f"wire [{width-1}:0] {k};\n"
+                                f"assign {k} = {lst[0]};\n")
+                    elif k[:4] == 'axi4':
+                        if width == 1:
+                            g.write(f'wire [2:0] {k};\n')
+                        else:
+                            g.write(f'wire [{width-1}:0] {k} [2:0];\n')
+                        # first 3 go in the sh_ddr module, last goes directly to shell
+                        maxidx = min(3, len(lst))
+                        for i, ele in enumerate(lst[:maxidx]):
+                            g.write(f"assign {k}[{i}] = {ele};\n")
+                        for i in range(3-len(lst)-1):
+                            g.write(f"assign {k}[{3-i}] = {width}'b0;\n")
                     else:
-                        g.write(f'wire [{width-1}:0] {k} [2:0];\n')
-                    # first 3 go in the sh_ddr module, last goes directly to shell
-                    maxidx = min(3, len(lst))
-                    for i, ele in enumerate(lst[:maxidx]):
-                        g.write(f"assign {k}[{i}] = {ele};\n")
-                    for i in range(3-len(lst)-1):
-                        g.write(f"assign {k}[{3-i}] = {width}'b0;\n")
+                        print("GOT A WEIRD KEY: " + str(k))
+                        exit(1)
 
                 g.write("ComposerTop(\n")
                 for pr in ct_io:
