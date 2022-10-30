@@ -51,8 +51,8 @@ elif opts['backend'] == 'aws':
     os.system("sed -i 's/cl_hello_world/composer_aws/g' build/scripts/create_dcp_from_cl.tcl && mkdir -p build/src_post_encryption && mkdir -p build/reports && mkdir -p build/checkpoints/to_aws")
     os.system("sed -i 's/cl_hello_world.sv/composer_aws.sv/g' build/scripts/encrypt.tcl && "
               "sed -i 's/..\/common\/design\/cl_common_defines.vh/design\/cl_ports.vh/g' build/scripts/encrypt.tcl")
-    # os.system("sed '34d' build/scripts/encrypt.tcl > tmp")
-    # os.system("mv tmp build/scripts/encrypt.tcl")
+    os.system("sed '34d' build/scripts/encrypt.tcl > tmp")
+    os.system("mv tmp build/scripts/encrypt.tcl")
     os.system(f"cp {hdk_dir}/common/shell_stable/design/interfaces/cl_ports.vh design/")
     os.system("cp generated-src/composer.v design/composer.v")
     with open("design/cl_id_defines.vh", 'w') as f:
