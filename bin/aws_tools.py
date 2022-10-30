@@ -187,4 +187,10 @@ def create_aws_shell():
 
     f.close()
     g.close()
-
+    f = "composer_aws.sv"
+    if ndram > 0:
+        os.system(f"sed -i 's/DDR_A_PRESENT\\(0/DDR_A_PRESENT(1/g' {f}")
+    if ndram > 1:
+        os.system(f"sed -i 's/DDR_A_PRESENT\\(0/DDR_B_PRESENT(1/g' {f}")
+    if ndram > 3:
+        os.system(f"sed -i 's/DDR_A_PRESENT\\(0/DDR_D_PRESENT(1/g' {f}")
