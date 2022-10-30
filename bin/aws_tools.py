@@ -62,7 +62,7 @@ def create_aws_shell():
         ndram = max(map(lambda x: int(x['name'].split('_')[2]), dram_io)) + 1
     assert len(axil_io) > 0
 
-    g = open("composer_aws.v", 'w')
+    g = open("composer_aws.sv", 'w')
     g.write(f"`include \"composer.v\"\n")
     flns = f.readlines()
     # copy everything before the sh_ddr module
