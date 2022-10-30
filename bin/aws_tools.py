@@ -131,7 +131,6 @@ def create_aws_shell():
         elif state == 1:
             g.write(ln)
             if ln.strip()[:6] == 'sh_ddr':
-                g.write(ln)
                 state = 2
         elif state == 2:
             prefix = ln.strip()
