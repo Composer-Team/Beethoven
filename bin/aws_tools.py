@@ -116,7 +116,7 @@ def create_aws_shell():
                         print("GOT A WEIRD KEY: " + str(k))
                         exit(1)
 
-                g.write("ComposerTop(\n")
+                g.write("ComposerTop myTop(\n")
                 for pr in ct_io:
                     if pr['name'] == 'clock':
                         g.write(f"\t.clock(clk),\n")
