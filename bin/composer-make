@@ -45,11 +45,11 @@ elif opts['backend'] == 'aws':
     aws_tools.create_aws_shell()
     path = f"{hdk_dir}/cl/developer_designs/prepare_new_cl.sh"
     print(path)
-    os.system(f"{path} && mv composer_aws.v design/")
+    os.system(f"{path} && mv composer_aws.sv design/")
     print(f"Setting CL_DIR to {os.getcwd()} . For future runs, make sure to either export this variable or run this script again.")
     os.environ["CL_DIR"] = os.getcwd()
     os.system("sed -i 's/cl_hello_world/composer_aws/g' build/scripts/create_dcp_from_cl.tcl && mkdir -p build/src_post_encryption && mkdir -p build/reports && mkdir -p build/checkpoints/to_aws")
-    os.system("sed -i 's/cl_hello_world.sv/composer_aws.v/g' build/scripts/encrypt.tcl && "
+    os.system("sed -i 's/cl_hello_world.sv/composer_aws.sv/g' build/scripts/encrypt.tcl && "
               "sed -i 's/..\/common\/design\/cl_common_defines.vh/design\/cl_ports.vh/g' build/scripts/encrypt.tcl")
     os.system("sed '34d' build/scripts/encrypt.tcl > tmp")
     os.system("mv tmp build/scripts/encrypt.tcl")
