@@ -119,9 +119,9 @@ def create_aws_shell():
                 g.write("ComposerTop(\n")
                 for pr in ct_io:
                     if pr['name'] == 'clock':
-                        g.write(f"\t.clock(clk)\n")
+                        g.write(f"\t.clock(clk),\n")
                     elif pr['name'] == 'reset':
-                        g.write(f"\t.reset(sync_rst_n)\n")
+                        g.write(f"\t.reset(sync_rst_n),\n")
                     else:
                         g.write(f"\t.{pr['name']}({pr['wire']}),\n")
                 g.write(');\n')
