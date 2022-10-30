@@ -96,8 +96,11 @@ def create_aws_shell():
                 for k in concats.keys():
                     lst, width = concats[k]
                     if k[:3] == 'ocl':
-                        g.write(f"wire [{width-1}:0] {k};\n"
-                                f"assign {k} = {lst[0]};\n")
+                        if width == 1:
+                            g.write(f"wire {k};\n")
+                        else:
+                            g.write(f"wire [{width-1}:0] {k};\n")
+                        g.write(f"assign {k} = {lst[0]};\n")
                     elif k[:4] == 'axi4':
                         if width == 1:
                             g.write(f'wire [2:0] {k};\n')
