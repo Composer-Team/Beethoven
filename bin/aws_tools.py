@@ -63,7 +63,7 @@ def create_aws_shell():
     assert len(axil_io) > 0
 
     g = open("composer_aws.v", 'w')
-    g.write(f"`include composer.v\n")
+    g.write(f"`include \"composer.v\"\n")
     flns = f.readlines()
     # copy everything before the sh_ddr module
     state = 0
@@ -96,20 +96,15 @@ def create_aws_shell():
                 for k in concats.keys():
                     lst, width = concats[k]
                     if width == 1:
-                        g.write(f'wire [2:0] {k} = ' + '{')
+                        g.write(f'wire [2:0] {k};\n')
                     else:
-                        g.write(f'wire [{width-1}:0] {k} [2:0] = ' + '{')
-                    if len(lst) >= 3:
-                        for ele in lst[:-1]:
-                            g.write(f'{ele}, ')
-                        g.write(f"{lst[-1]}" + "};\n")
-                    else:
-                        for ele in lst:
-                            g.write(f'{ele}, ')
-                        for i in range(3-len(lst)-1):
-                            g.write(f"{width}'b0, ")
-                        g.write(f"{width}'b0" + "};\n")
-
+                        g.write(f'wire [{width-1}:0] {k} [2:0];\n')
+                    # first 3 go in the sh_ddr module, last goes directly to shell
+                    maxidx = min(3, len(lst))
+                    for i, ele in enumerate(lst[:maxidx]):
+                        g.write(f"assign {k}[{i}] = {ele};\n")
+                    for i in range(3-len(lst)-1):
+                        g.write(f"assign {k}[{3-i}] = {width}'b0;\n")
 
                 g.write("ComposerTop(\n")
                 for pr in ct_io:
