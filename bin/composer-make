@@ -1,5 +1,6 @@
 #!python3
 import os
+import aws_tools
 
 cr = os.environ.get("COMPOSER_ROOT")
 if cr is None:
@@ -25,9 +26,14 @@ else:
         print("invalid response")
         exit(1)
     opts.update({'backend': opt})
+    with open("composer.cfg") as f:
+        f.write(f"backend {opt}")
+    print("Your choice have been recorded in `composer.cfg`")
 
 if opts['backend'] == 'verilator':
     os.system(f"cmake {cr}/Composer_Verilator -B verilator -DCMAKE_BUILD_TYPE=Release && make -C verilator")
+elif opts['backend'] == 'aws':
+    aws_tools.create_aws_shell()
 else:
-    # make shell
-    pass
+    print("operation not recognized")
+
