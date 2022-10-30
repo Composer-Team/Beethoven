@@ -169,7 +169,7 @@ def create_aws_shell():
                 wire_id = wire_id + 1
             else:
                 # bug-fix within existing aws code ???
-                if ln.strip().split()[0] == '.ddr_sh_state_int0':
+                if prefix.split()[0] == '.ddr_sh_stat_int0':
                     g.write(ln[:-1] + ",\n")
                 else:
                     g.write(ln)
