@@ -285,6 +285,7 @@ def create_aws_shell():
                 continue
             spl = ln.split()
             name = spl[1]
+            print("considering " + name)
             if name.find("[") != -1:
                 name = name[:name.find("[")]
             if to_init.count(name) != 0:
