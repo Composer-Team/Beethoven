@@ -37,12 +37,15 @@ def scrape_aws_ports():
         for ln in stripped:
             if ln == '':
                 continue
+            if ln[:2] == '//':
+                continue
             spl = ln.split()
             if spl[0] == 'input':
                 is_input = True
             else:
                 is_input = False
             # determine width
+            print(spl)
             if spl[1].find('[') != -1:
                 # it has a width > 1
                 begin = spl[1].find('[')+1
