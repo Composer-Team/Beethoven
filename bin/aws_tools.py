@@ -343,7 +343,11 @@ def create_aws_shell():
         wire_name = f"wire_stat_{ddr_wire_id}"
         ddr_wire_id = ddr_wire_id + 1
         assert ddr_ar_width == 1
-        g.write(f"wire [{ddr_width-1}:0] {wire_name};\n"
+        if ddr_width == 1:
+            width_str = ''
+        else:
+            width_str = f'[{ddr_width-1}:0] '
+        g.write(f"wire {width_str}{wire_name};\n"
                 f"assign {wire_name} = {ddr_name};\n")
         ddr_stats[ddr_name] = wire_name
 
@@ -354,7 +358,11 @@ def create_aws_shell():
         wire_name = f"wire_stat_{ddr_wire_id}"
         ddr_wire_id = ddr_wire_id + 1
         assert ddr_ar_width == 1
-        g.write(f"wire [{ddr_width-1}:0] {wire_name};\n"
+        if ddr_width == 1:
+            width_str = ''
+        else:
+            width_str = f'[{ddr_width-1}:0] '
+        g.write(f"wire {width_str}{wire_name};\n"
                 f"assign {ddr_name} = {wire_name};\n")
         ddr_stats[ddr_name] = wire_name
 
