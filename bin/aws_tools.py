@@ -181,7 +181,7 @@ def create_aws_shell():
                             f"begin\n")
                     for port, width in ports_logics:
                         g.write(f"\t{port} <= 0;\n")
-                    g.write(f"end")
+                    g.write(f"end\n")
                 for pr in ct_io:
                     if pr['name'] == 'clock' or pr['name'] == 'reset':
                         continue
