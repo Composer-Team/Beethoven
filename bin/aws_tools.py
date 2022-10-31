@@ -149,7 +149,7 @@ def scrape_sh_ddr_ports():
                 # but they're already handled (they're the raw DDR pins)
                 continue
             bracket_count = ln.count('[')
-            name_str = str(ln.replace('input', '').replace('output', ''))
+            name_str = str(ln.replace('input', '').replace('output', '').strip())
             found_start = False
             found_end = False
             name_start = -1
