@@ -155,16 +155,16 @@ def scrape_sh_ddr_ports():
                 ar_width = 1
             elif bracket_count == 1:
                 width = ln[ln.find('[')+1:ln.find(':')]
-                name = ln[ln.find(']'):].strip().split()[0]
+                name = ln[ln.find(']')+1:].strip().split()[0]
                 ar_width = 1
             elif bracket_count == 2:
                 width = ln[ln.find('[')+1:ln.find(':')]
-                name = ln[ln.find(']'):].strip().split()[0]
+                name = ln[ln.find(']')+1:].strip().split()[0]
                 ar_width = ln[ln.rfind('[')+1:ln.rfind(':')]
             else:
                 print(f"too many bracketk {ln}")
                 exit(1)
-            print(f"{ln} => {name}\t{bracket_count}")
+            # print(f"{ln} => {name}\t{bracket_count} {ln.find(']')} '{ln[ln.]}'")
             if is_input:
                 sh_ddr_in.append((name, width, ar_width))
             elif is_output:
