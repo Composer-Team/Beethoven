@@ -149,17 +149,36 @@ def scrape_sh_ddr_ports():
                 # but they're already handled (they're the raw DDR pins)
                 continue
             bracket_count = ln.count('[')
+            name_str = str(ln.replace('input', '').replace('output', ''))
+            found_start = False
+            found_end = False
+            name_start = -1
+            name_end = -1
+            for i, c in enumerate(name_str):
+                c = str(c)
+                if not found_start:
+                    c.isalpha()
+                    found_start = True
+                    name_start = i
+                    continue
+                elif found_start and not found_end:
+                    if not c.isalpha() and c != '_':
+                        found_end = True
+                        name_end = i
+                        continue
+            if name_end != -1:
+                name = name_str[name_start:name_end]
+            else:
+                name = name_str[name_start:]
+
             if bracket_count == 0:
                 width = 1
-                name = ln.replace(',', '').split()[1]
                 ar_width = 1
             elif bracket_count == 1:
                 width = ln[ln.find('[')+1:ln.find(':')]
-                name = ln[ln.find(']')+1:].strip().split()[0]
                 ar_width = 1
             elif bracket_count == 2:
                 width = ln[ln.find('[')+1:ln.find(':')]
-                name = ln[ln.find(']')+1:].strip().split()[0]
                 ar_width = ln[ln.rfind('[')+1:ln.rfind(':')]
             else:
                 print(f"too many bracketk {ln}")
