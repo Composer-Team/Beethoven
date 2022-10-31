@@ -83,6 +83,7 @@ def scrape_aws_ports():
                 output_logics.append((name, width))
             else:
                 outputs.append((name, width))
+
     return inputs, outputs, output_logics
 
 
@@ -156,7 +157,7 @@ def scrape_sh_ddr_ports():
                 width = int(ln[start + 1:end].split(':')[0]) + 1
             if is_array:
                 start = ln.rfind('[')
-                name = ln[end:start].strip()
+                name = ln[end+1:start].strip()
                 end = ln.rfind(']')
                 ar_width = int(ln[start + 1:end].split(':')[0]) + 1
             else:
