@@ -79,6 +79,7 @@ def scrape_aws_ports():
 def create_aws_shell():
     # Get io_in and io_out ports for shell so that we can initialize them all to tied off values.
     ports_in, ports_out, ports_logics = scrape_aws_ports()
+    to_init = [q[0] for q in ports_out + ports_in]
     f = open(f"{os.environ.get('COMPOSER_AWS_SDK_DIR')}/hdk/common/shell_stable/new_cl_template/"
              f"design/cl_template.sv")
     ct = open(f"{os.environ.get('COMPOSER_ROOT')}/Composer-Hardware/vsim/generated-src/composer.v")
@@ -284,6 +285,8 @@ def create_aws_shell():
                 continue
             spl = ln.split()
             name = spl[1]
+            if to_init.count(name) != 0:
+                continue
             prefix = name[:9]
             if prefix != 'cl_sh_ddr' and prefix != 'sh_cl_ddr':
                 g.write(ln)
