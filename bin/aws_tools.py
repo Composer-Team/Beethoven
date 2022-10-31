@@ -174,8 +174,6 @@ def create_aws_shell():
     axil_io = list(filter(lambda x: x['name'][:3] == 'ocl', cl_io))
     dram_io = list(filter(lambda x: x['name'][:8] == 'axi4_mem', cl_io))
 
-    # only remaining pins should be clock and reset
-    assert len(dram_io) + len(axil_io) + 2 == len(cl_io)
     # How many AXI4-Mem interfaces did we intialize Composer with?
     if len(dram_io) == 0:
         ndram = 0
