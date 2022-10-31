@@ -67,10 +67,10 @@ def scrape_aws_ports():
                 # it has a width > 1
                 begin = ln.find('[') + 1
                 end = ln.find(':')
-                width = ln[1][begin:end]
+                width = ln[begin:end].strip()
                 subt = ln[ln.find(']') + 1:].split()
                 name = subt[0]
-                print(f"length of {name} is {width} from {ln.strip()}\t{begin}\t{end}")
+                print(f"length of {name} is {width} from {ln.strip()}\t{begin}\t{end}\t")
             else:
                 width = 1
                 if ty != 1:
