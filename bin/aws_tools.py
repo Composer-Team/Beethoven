@@ -453,7 +453,13 @@ def create_aws_shell():
         if lower in reserved or port_out_name[:2] == 'M_' or lower.find('ddr') != -1\
                 or lower.find('ocl') != -1 or lower.find('clk') != -1 or lower.find('rst') != -1:
             continue
-        g.write(f"assign {port_out_name} = 0;\n")
+        if 'ack' in lower:
+            set_to = "1"
+        else:
+            set_to = "0"
+        if port_out_width > 1:
+            set_to = f"{port_out_width}'b" + (set_to * int(port_out_width))
+        g.write(f"assign {port_out_name} = {set_to};\n")
 
     g.write("// begin secondary tie-offs\n")
     # Do tie-offs
