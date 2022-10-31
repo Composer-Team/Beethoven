@@ -46,9 +46,9 @@ def scrape_aws_ports():
         lns = f.readlines()
         stripped = map(lambda x: x.strip().replace(',', '').replace('wire', ''), lns)
         for ln in stripped:
+            if '//' in ln:
+                ln = ln[ln.find('//')+2:].strip()
             if ln == '':
-                continue
-            if ln[:2] == '//':
                 continue
             spl = ln.split()
             if spl[0] == 'input':
