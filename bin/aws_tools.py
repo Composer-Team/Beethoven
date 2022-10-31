@@ -29,6 +29,15 @@ ERROR: [Synth 8-1031] ddr_sh_stat_int is not declared [/home/centos/Composer/Com
 """
 
 
+def is_number(q):
+    # noinspection PyBroadException
+    try:
+        a = int(q)
+    except:
+        return False
+    return True
+
+
 def scrape_aws_ports():
     with open(f"{os.environ['COMPOSER_AWS_SDK_DIR']}/hdk/common/shell_stable/design/interfaces/cl_ports.vh") as f:
         inputs = []
@@ -295,10 +304,10 @@ def create_aws_shell():
                             exit(1)
                         found = True
                         if port_out_width != width:
-                            if port_out_width < width:
+                            if not is_number(port_out_width) or not is_number(width):
                                 print("FATAL port2 in width headache")
                                 exit(1)
-                            g.write(f"assign {port_out_name} = {(width - port_out_width)}'b0, {lst[-1]};\n")
+                            g.write(f"assign {port_out_name} = {(int(width) - int(port_out_width))}'b0, {lst[-1]};\n")
                         else:
                             g.write(f"assign {port_out_name} = {lst[-1]};\n")
         else:
