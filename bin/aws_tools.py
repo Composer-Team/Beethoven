@@ -44,7 +44,7 @@ def scrape_aws_ports():
             if spl[0] == 'input':
                 ty = 0
             elif spl[0] == 'output':
-                if spl[1] == 'logic':
+                if spl[1][:5] == 'logic':
                     ty = 1
                 else:
                     ty = 2
