@@ -237,9 +237,20 @@ def create_aws_shell():
         f"module composer_aws #(parameter NUM_PCIE=1, parameter NUM_DDR=4, parameter NUM_HMC=4, parameter NUM_GTY=4)\n"
         f"(\n"
         f"\t`include \"cl_ports.vh\" // fixed ports definition included by build script\n"
-        f");")
-    state = 0
-    sh_ddr_module_pairs = []
+        f");\n"
+        f"logic pre_sync_rst_n;\n"
+        f"logic sync_rst_n;\n"
+        f"always_ff @(negedge rst_main_n or posedge clk)\n"
+        f"\tif (!rst_main_n)\n"
+        f"\tbegin\n"
+        f"\t\tpre_sync_rst_n <= 0;\n"
+        f"\t\tsync_rst_n <= 0;\n"
+        f"\tend\n"
+        f"\telse\n"
+        f"\tbegin\n"
+        f"\t\tpre_sync_rst_n <= 1;\n"
+        f"\t\tsync_rst_n <= pre_sync_rst_n;\n"
+        f"\tend")
     concats = {}
 
     ############# INIT ALL COMPOSER STUFF ################
@@ -463,7 +474,6 @@ def create_aws_shell():
             if int(port_out_width) > 1:
                 set_to = f"{port_out_width}'b" + (set_to * int(port_out_width))
             g.write(f"assign {port_out_name} = {set_to};\n")
-
 
     g.write("// begin secondary tie-offs\n")
     # Do tie-offs
