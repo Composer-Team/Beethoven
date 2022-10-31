@@ -153,7 +153,10 @@ def scrape_sh_ddr_ports():
                 ar_width = int(ln[start + 1:end].split(':')[0]) + 1
             else:
                 ar_width = 1
-                name = ln[end:].replace(',', '').split()[0]
+                if width == 1:
+                    name = ln.replace(',', '').split()[1]
+                else:
+                    name = ln[end:].replace(',', '').split()[0]
             if is_input:
                 sh_ddr_in.append((name, width, ar_width))
             elif is_output:
