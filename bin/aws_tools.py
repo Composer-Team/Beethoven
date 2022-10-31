@@ -45,6 +45,8 @@ def scrape_aws_ports():
             else:
                 is_input = False
             # determine width
+            if len(spl) < 2:
+                continue
             print(spl)
             if spl[1].find('[') != -1:
                 # it has a width > 1
