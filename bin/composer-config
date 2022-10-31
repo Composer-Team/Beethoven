@@ -20,14 +20,20 @@ else:
                 "1 - AWS FPGA\n").strip()
     if opt == '0':
         opt = 'verilator'
+        build_only = False
     elif opt == '1':
         opt = 'aws'
+        build_only = input("Build sources only? [y]/n  (Saying no will make composer-config commence build for AWS platform).\n")
+        if build_only.strip() != 'n':
+            build_only = True
+        else:
+            build_only = False
     else:
         print("invalid response")
         exit(1)
-    opts.update({'backend': opt})
+    opts.update({'backend': opt, 'build': build_only})
     with open("composer.cfg", 'w') as f:
-        f.write(f"backend {opt}")
+        f.write(f"backend {opt}\nbuild {build_only}")
     print("Your choice have been recorded in `composer.cfg`")
 
 if opts['backend'] == 'verilator':
@@ -62,12 +68,13 @@ elif opts['backend'] == 'aws':
     tcl_name = "build/scripts/synth_composer_aws.tcl"
     os.system(f"mv build/scripts/synth_cl_hello_world.tcl {tcl_name} &&"
               f" sed -i 's/\\?v/sv/g' {tcl_name} && rm -f design/cl_template.sv")
-    dvdir = f"{aws}/hdk/cl/developer_designs/composer/"
-    os.system(f"mkdir {dvdir}")
-    os.system(f"rm -rf {dvdir}/build {dvdir}/design &&"
-              f"cp -r build {dvdir}/ && cp -r design {dvdir}/ && export EMAIL=chriskjellqvist@gmail.com &&"
-              f"export CL_DIR={dvdir} && "
-              f"cd {dvdir}/build/scripts/ && ./aws_build_dcp_from_cl.sh -notify")
+    if not opts['build']:
+        dvdir = f"{aws}/hdk/cl/developer_designs/composer/"
+        os.system(f"mkdir {dvdir}")
+        os.system(f"rm -rf {dvdir}/build {dvdir}/design &&"
+                  f"cp -r build {dvdir}/ && cp -r design {dvdir}/ && export EMAIL=chriskjellqvist@gmail.com &&"
+                  f"export CL_DIR={dvdir} && "
+                  f"cd {dvdir}/build/scripts/ && ./aws_build_dcp_from_cl.sh -notify")
 else:
     print("operation not recognized")
 

@@ -55,6 +55,8 @@ def scrape_aws_ports():
                 width = ln[begin:end].strip()
                 subt = ln[ln.rfind(']') + 1:].split()
                 name = subt[0]
+                if is_number(width):
+                    width = int(width) + 1
             else:
                 width = 1
                 if ty != 1:
@@ -125,9 +127,7 @@ def scrape_sh_ddr_ports():
         lns = f.readlines()
         for ln in lns:
             if '//' in ln:
-                print("found // in " + ln)
                 ln = ln[:ln.find('//')].strip()
-                print("is now " + ln)
             ln = ln.strip().replace('logic', '')
             if ln.find(');') != -1:
                 return sh_ddr_in, sh_ddr_out
@@ -276,58 +276,76 @@ def create_aws_shell():
             concats[key] = (concats[key][0] + [pr['wire']], pr['width'])
     for k in concats.keys():
         lst, width = concats[k]
+        print(f"{k} is width {width}")
+        partname = k.split("_")[1]
         if k[:3] == 'ocl':
-            if width == 1:
-                g.write(f"wire {k};\n")
+            def search_for_ocl_part(part, part_list):
+                for pname, pwidth in part_list:
+                    if 'ocl' in pname and part in pname:
+                        return pname, int(pwidth)
+                return None, None
+            pname, pwidth = search_for_ocl_part(partname, ports_in)
+            if pname is not None:
+                if pwidth != width:
+                    print(f"This happened 2 :( {pname} {k}")
+                    exit(1)
+                g.write(f"assign {lst[0]} = {pname};\n")
             else:
-                g.write(f"wire [{width - 1}:0] {k};\n")
-            g.write(f"assign {k} = {lst[0]};\n")
+                pname, pwidth = search_for_ocl_part(partname, ports_out + ports_logics)
+                if pname is None:
+                    print(f"couldn't find match for {partname}")
+                    continue
+                if pwidth != width:
+                    print(f"This happened 3 :( {pname} {partname} {width} {pwidth}")
+                g.write(f"assign {pname} = {lst[0]};\n")
+
         elif k[:4] == 'axi4':
+            print("doing " + str(k))
             found = False
             # deal with DDR_C first to scrape out_port width
-            port_out_width = -1
-            for port_in_name, port_in_width in ports_in:
-                if port_in_name.find("ddr_" + partname) != -1:
-                    if found:
-                        print("FATAL in port_in_name")
-                        exit(1)
-                    found = True
-                    # this non-equal case mostly pertains to ID bits being different
-                    if port_in_width != width:
-                        if port_in_width > width:
-                            print("FATAL port in width headache")
-                            exit(1)
-                        g.write(f"assign {lst[-1]} = " + "{" + f"{int(width)-int(port_in_width)}'b0, {port_in_name}" + "};\n")
-                    else:
-                        g.write(f"assign {lst[-1]} = {port_in_name};\n")
-            if not found:
-                for port_out_name, port_out_width in ports_out + ports_logics:
-                    if port_out_name.find("ddr_" + partname) != -1:
-                        if found:
-                            print("FATAL found 2")
-                            exit(1)
-                        found = True
-                        if port_out_width != width:
-                            commit = False
-                            port_out_width = int(port_out_width) + 1
-                            if port_out_width != width:
-                                g.write(f"assign {port_out_name} = " + "{" + f"{int(port_out_width)-int(width)}'b0, {lst[-1]}" + "};\n")
-                                continue
-                        g.write(f"assign {port_out_name} = {lst[-1]};\n")
-            partname = k.split("_")[1]
+            is_out = -1
             valid_axi_parts.add(partname)
-            if port_out_width == 1:
+            def search_for_part(part, part_list):
+                for pname, pwidth in part_list:
+                    if pname.find("ddr_" + part) != -1:
+                        pwidth = int(pwidth)
+                        return pname, pwidth
+                return None, None
+            
+            pname, pwidth = search_for_part(partname, ports_in)
+            is_out = False
+            if pname is not None:
+                if pwidth != width:
+                    print(f"This happened :( for {pname} on {partname}")
+                    print(f"{pname} is {pwidth}\t{partname} {width}")
+                    exit(1)
+                else:
+                    g.write(f"assign {lst[-1]} = {pname};\n")
+                is_out = False
+            else:
+                pname, pwidth = search_for_part(partname, ports_out + ports_logics)
+                if pname is None:
+                    print(f"Couldn't find {partname} anywhere!")
+                    continue
+                if pwidth != width:
+                    g.write(f"assign {pname} = " + "{" + f"{pwidth-int(width)}'b0, {lst[-1]}" + "};\n")
+                else:
+                    g.write(f"assign {pname} = {lst[-1]};\n")
+                is_out=True
+
+            print(f"width of port {partname} is {pwidth} from {pname}")
+            if pwidth == 1:
                 g.write(f'wire [2:0] {k};\n')
             else:
-                g.write(f'wire [{port_out_width - 1}:0] {k} [2:0];\n')
+                g.write(f'wire [{pwidth - 1}:0] {k} [2:0];\n')
             # first 3 go in the sh_ddr module, last goes directly to shell
             for i, ele in enumerate(lst[:3]):
-                if width == port_out_width:
+                if width == pwidth:
                     g.write(f"assign {k}[{i}] = {ele};\n")
                 else:
-                    g.write(f"assign {k}[{i}] = " + "{" + f"{int(port_out_width)-int(width)}'b0, {ele}" + "};\n")
+                    g.write(f"assign {k}[{i}] = " + "{" + f"{pwidth-int(width)}'b0, {ele}" + "};\n")
             for i in range(3 - len(lst) - 1):
-                g.write(f"assign {k}[{3 - i}] = {port_out_width}'b0;\n")
+                g.write(f"assign {k}[{3 - i}] = {port_width}'b0;\n")
 
         else:
             print("GOT A WEIRD KEY: " + str(k))
@@ -450,7 +468,7 @@ def create_aws_shell():
     reserved = ['cl_sh_id0', 'cl_sh_id1', 'cl_sh_status1']
 
     g.write("// begin tie-offs\n")
-    for port_out_name, port_out_width in ports_out + ports_logics:
+    for port_out_name, port_width in ports_out + ports_logics:
         lower = str(port_out_name).lower()
         if lower in reserved or port_out_name[:2] == 'M_' or lower.find('ddr') != -1 \
                 or lower.find('ocl') != -1 or lower.find('clk') != -1 or lower.find('rst') != -1:
@@ -462,8 +480,8 @@ def create_aws_shell():
         if set_to == '0':
             g.write(f"assign {port_out_name} = {set_to};\n")
         else:
-            if int(port_out_width) > 1:
-                set_to = f"{port_out_width}'b" + (set_to * int(port_out_width))
+            if int(port_width) > 1:
+                set_to = f"{port_width}'b" + (set_to * int(port_width))
             g.write(f"assign {port_out_name} = {set_to};\n")
 
     g.write("// begin secondary tie-offs\n")
