@@ -166,9 +166,9 @@ def scrape_sh_ddr_ports():
                 exit(1)
             # print(f"{ln} => {name}\t{bracket_count} {ln.find(']')} '{ln[ln.]}'")
             if is_input:
-                sh_ddr_in.append((name, width, ar_width))
+                sh_ddr_in.append((name, int(width), int(ar_width)))
             elif is_output:
-                sh_ddr_out.append((name, width, ar_width))
+                sh_ddr_out.append((name, int(width), int(ar_width)))
     print("Error: never found ');' in `scrape_sh_ddr_ports()")
     exit(1)
 
