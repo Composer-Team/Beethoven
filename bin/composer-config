@@ -41,7 +41,7 @@ elif opts['backend'] == 'aws':
     if hdk_dir is None:
         print("HDK_DIR not set. This is usually set as part of aws-fpga setup. Please source hdk_setup.sh in the aws-fpga repo before running this.")
         hdk_dir = f"{aws}/hdk"
-        os.environ["HDK_DIR"]=hdk_dir
+        os.environ["HDK_DIR"] = hdk_dir
     aws_tools.create_aws_shell()
     path = f"{hdk_dir}/cl/developer_designs/prepare_new_cl.sh"
     print(path)
@@ -52,8 +52,8 @@ elif opts['backend'] == 'aws':
     os.system("sed -i 's/cl_hello_world.sv/composer_aws.sv/g' build/scripts/encrypt.tcl && "
               "sed -i 's/..\/common\/design\/cl_common_defines.vh/design\/cl_ports.vh/g' build/scripts/encrypt.tcl")
     os.system("sed '34d' build/scripts/encrypt.tcl > tmp")
-    os.system("mv tmp build/scripts/encrypt.tcl")
-    os.system(f"cp {hdk_dir}/common/shell_stable/design/interfaces/cl_ports.vh design/")
+    os.system("mv tmp build/scripts/encrypt.tcl &&"
+              f"cp {hdk_dir}/common/shell_stable/design/interfaces/cl_ports.vh design/")
     os.system("cp generated-src/composer.v design/composer.v")
     with open("design/cl_id_defines.vh", 'w') as f:
         f.write("`define CL_SH_ID0 32'hF002_1D0F\n"
@@ -61,7 +61,10 @@ elif opts['backend'] == 'aws':
     tcl_name = "build/scripts/synth_composer_aws.tcl"
     os.system(f"mv build/scripts/synth_cl_hello_world.tcl {tcl_name} &&"
               f" sed -i 's/\\?v/sv/g' {tcl_name} && rm -f design/cl_template.sv")
-    pass
+    dvdir = f"{aws}/hdk/cl/developer_designs/"
+    os.system(f"rm -rf {dvdir}/build {dvdir}/design &&"
+              f"cp -r build {dvdir}/ && cp -r design {dvdir}/ && export EMAIL=chriskjellqvist@gmail.com &&"
+              f"cd {dvdir}/build/scripts/ && ./aws_build_dcp_from_cl.sh -notify")
 else:
     print("operation not recognized")
 
