@@ -76,7 +76,6 @@ def scrape_aws_ports():
                     name = spl[1]
                 else:
                     name = spl[2]
-            print(f"{ln} => {name}")
             if ty == 0:
                 inputs.append((name, width))
             elif ty == 1:
@@ -323,7 +322,7 @@ def create_aws_shell():
                         if port_in_width > width:
                             print("FATAL port in width headache")
                             exit(1)
-                        g.write(f"assign {lst[-1]} = {(port_in_width - width)}'b0, {port_in_name};\n")
+                        g.write(f"assign {lst[-1]} = " + "{" + f"{int(width)-int(port_in_width)}'b0, {port_in_name}" + "};\n")
                     else:
                         g.write(f"assign {lst[-1]} = {port_in_name};\n")
             if not found:
@@ -334,12 +333,17 @@ def create_aws_shell():
                             exit(1)
                         found = True
                         if port_out_width != width:
+                            commit = False
                             if not is_number(port_out_width) or not is_number(width):
                                 print(f"FATAL port2 in width headache '{port_out_name}' '{port_out_width}' '{lst[-1]}' '{width}'")
                                 exit(1)
-                            g.write(f"assign {port_out_name} = {(int(width) - int(port_out_width))}'b0, {lst[-1]};\n")
-                        else:
-                            g.write(f"assign {port_out_name} = {lst[-1]};\n")
+                            else:
+                                port_out_width = int(port_out_width) + 1 
+                            if port_out_width != width:
+                                print(f"port {port_out_name} {port_out_width} {width}")
+                                g.write(f"assign {port_out_name} = " + "{" + f"{int(port_out_width)-int(width)}'b0, {lst[-1]}" + "};\n")
+                                continue
+                        g.write(f"assign {port_out_name} = {lst[-1]};\n")
         else:
             print("GOT A WEIRD KEY: " + str(k))
             exit(1)
