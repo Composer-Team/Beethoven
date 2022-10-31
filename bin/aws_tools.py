@@ -76,6 +76,7 @@ def scrape_aws_ports():
                     name = spl[1]
                 else:
                     name = spl[2]
+            print(f"{ln} => {name}")
             if ty == 0:
                 inputs.append((name, width))
             elif ty == 1:
@@ -170,7 +171,6 @@ def scrape_sh_ddr_ports():
                 name = name_str[name_start:name_end]
             else:
                 name = name_str[name_start:]
-            print(f"'{name_str}' '{name}' {name_start} {name_end}")
 
             if bracket_count == 0:
                 width = 1
@@ -184,7 +184,6 @@ def scrape_sh_ddr_ports():
             else:
                 print(f"too many bracketk {ln}")
                 exit(1)
-            print(f"{ln} => {name}\t{bracket_count} {ln.find(']')+1} '{ln[ln.find(']')+1:]}'")
             if is_input:
                 sh_ddr_in.append((name, int(width), int(ar_width)))
             elif is_output:
