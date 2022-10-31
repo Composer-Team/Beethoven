@@ -1,7 +1,67 @@
 import os
 
+"""
+ERROR: [Synth 8-1031] DDR_A_PRESENT is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:503]
+ERROR: [Synth 8-1031] DDR_B_PRESENT is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:504]
+ERROR: [Synth 8-1031] DDR_D_PRESENT is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:505]
+ERROR: [Synth 8-1031] cl_sh_pcis_awready is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:637]
+ERROR: [Synth 8-1031] cl_sh_pcis_wready is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:639]
+ERROR: [Synth 8-1031] cl_sh_pcis_bresp is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:641]
+ERROR: [Synth 8-1031] cl_sh_pcis_bid is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:642]
+ERROR: [Synth 8-1031] cl_sh_pcis_bvalid is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:643]
+ERROR: [Synth 8-1031] cl_sh_pcis_arready is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:645]
+ERROR: [Synth 8-1031] cl_sh_pcis_rdata is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:647]
+ERROR: [Synth 8-1031] cl_sh_pcis_rresp is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:648]
+ERROR: [Synth 8-1031] cl_sh_pcis_rid is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:649]
+ERROR: [Synth 8-1031] cl_sh_pcis_rlast is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:650]
+ERROR: [Synth 8-1031] cl_sh_pcis_rvalid is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:651]
+ERROR: [Synth 8-1751] cannot index into non-array cl_sh_pcim_awvalid [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:658]
+ERROR: [Synth 8-1751] cannot index into non-array cl_sh_pcim_wlast [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:662]
+ERROR: [Synth 8-1751] cannot index into non-array cl_sh_pcim_wvalid [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:663]
+ERROR: [Synth 8-1751] cannot index into non-array cl_sh_pcim_bready [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:665]
+ERROR: [Synth 8-1751] cannot index into non-array cl_sh_pcim_arvalid [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:671]
+ERROR: [Synth 8-1751] cannot index into non-array cl_sh_pcim_rready [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:673]
+ERROR: [Synth 8-1031] ddr_sh_stat_ack is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:676]
+ERROR: [Synth 8-1031] ddr_sh_stat_rdata is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:677]
+ERROR: [Synth 8-1031] ddr_sh_stat_rdata is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:678]
+ERROR: [Synth 8-1031] ddr_sh_stat_rdata is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:679]
+ERROR: [Synth 8-1031] ddr_sh_stat_int is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:680]
+"""
+
+def scrape_aws_ports():
+    with open(f"{os.environ['COMPOSER_AWS_SDK_DIR']}/hdk/common/shell_stable/design/interfaces/cl_ports.vh") as f:
+        inputs = []
+        outputs = []
+        lns = f.readlines()
+        stripped = map(lambda x: x.strip().replace('logic', ''), lns)
+        for ln in stripped:
+            if ln == '':
+                continue
+            spl = ln.split()
+            if spl[0] == 'input':
+                is_input = True
+            else:
+                is_input = False
+            # determine width
+            if spl[1].find('[') != -1:
+                # it has a width > 1
+                begin = spl[1].find('[')+1
+                end = spl[1].find(':')
+                width = int(spl[1][begin:end])
+                name = spl[2]
+            else:
+                width = 1
+                name = spl[1]
+            if is_input:
+                inputs.append((name, width))
+            else:
+                outputs.append((name, width))
+    return inputs, outputs
+
 
 def create_aws_shell():
+    # Get io_in and io_out ports for shell so that we can initialize them all to tied off values.
+    ports_in, ports_out = scrape_aws_ports()
     f = open(f"{os.environ.get('COMPOSER_AWS_SDK_DIR')}/hdk/common/shell_stable/new_cl_template/"
              f"design/cl_template.sv")
     ct = open(f"{os.environ.get('COMPOSER_ROOT')}/Composer-Hardware/vsim/generated-src/composer.v")
@@ -96,6 +156,9 @@ def create_aws_shell():
                             g.write(f"wire {pr['wire']};\n")
                         else:
                             g.write(f"wire [{int(pr['width']) - 1}:0] {pr['wire']};\n")
+                # do tie-offs that can be overriden later
+                for port, width in ports_out:
+                    g.write(f"assign {port} = {width}'b0;\n")
                 for pr in ct_io:
                     if pr['name'] == 'clock' or pr['name'] == 'reset':
                         continue
@@ -203,4 +266,5 @@ def create_aws_shell():
     f.close()
     g.close()
     f = "composer_aws.sv"
-    os.system(f"sed -i 's/DDR_\\(.\\)_PRESENT(0)/DDR_\\1_PRESENT(DDR_\\1_PRESENT)/g' {f}")
+    # TODO FIX these macros. They should work, but Vivado just doesn't like them...
+    os.system(f"sed -i 's/DDR_\\(.\\)_PRESENT(0)/DDR_\\1_PRESENT(1)/g' {f}")
