@@ -157,10 +157,10 @@ def scrape_sh_ddr_ports():
             for i, c in enumerate(name_str):
                 c = str(c)
                 if not found_start:
-                    c.isalpha()
-                    found_start = True
-                    name_start = i
-                    continue
+                    if c.isalpha():
+                        found_start = True
+                        name_start = i
+                        continue
                 elif found_start and not found_end:
                     if not c.isalpha() and c != '_':
                         found_end = True
