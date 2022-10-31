@@ -175,12 +175,21 @@ def create_aws_shell():
                             g.write(f"wire [{int(pr['width']) - 1}:0] {pr['wire']};\n")
                 # do tie-offs that can be overriden later
                 for port, width in ports_out:
-                    g.write(f"assign {port} = 0;\n")
+                    if port.find('ack') != -1:
+                        assign = 1
+                    else:
+                        assign = 0
+                    g.write(f"assign {port} = {assign};\n")
                 if len(ports_logics) > 0:
                     g.write(f"always @(posedge clk)\n"
                             f"begin\n")
                     for port, width in ports_logics:
-                        g.write(f"\t{port} <= 0;\n")
+                        if port.find('ack') != -1:
+                            assign = 1
+                        else:
+                            assign = 0
+
+                        g.write(f"\t{port} <= {assign};\n")
                     g.write(f"end\n")
                 for pr in ct_io:
                     if pr['name'] == 'clock' or pr['name'] == 'reset':
