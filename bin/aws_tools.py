@@ -159,6 +159,7 @@ def scrape_sh_ddr_ports():
                 start = ln.rfind('[')
                 name = ln[end+1:start].strip()
                 end = ln.rfind(']')
+                print(f"{ln} => {name}")
                 ar_width = int(ln[start + 1:end].split(':')[0]) + 1
             else:
                 ar_width = 1
