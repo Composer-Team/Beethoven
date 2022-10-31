@@ -64,6 +64,7 @@ elif opts['backend'] == 'aws':
     dvdir = f"{aws}/hdk/cl/developer_designs/"
     os.system(f"rm -rf {dvdir}/build {dvdir}/design &&"
               f"cp -r build {dvdir}/ && cp -r design {dvdir}/ && export EMAIL=chriskjellqvist@gmail.com &&"
+              f"export CL_DIR={dvdir} && "
               f"cd {dvdir}/build/scripts/ && ./aws_build_dcp_from_cl.sh -notify")
 else:
     print("operation not recognized")
