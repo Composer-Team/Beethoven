@@ -32,8 +32,9 @@ def scrape_aws_ports():
     with open(f"{os.environ['COMPOSER_AWS_SDK_DIR']}/hdk/common/shell_stable/design/interfaces/cl_ports.vh") as f:
         inputs = []
         outputs = []
+        output_logics = []
         lns = f.readlines()
-        stripped = map(lambda x: x.strip().replace('logic', '').replace(',', '').replace('wire', ''), lns)
+        stripped = map(lambda x: x.strip().replace(',', '').replace('wire', ''), lns)
         for ln in stripped:
             if ln == '':
                 continue
@@ -41,9 +42,12 @@ def scrape_aws_ports():
                 continue
             spl = ln.split()
             if spl[0] == 'input':
-                is_input = True
+                ty = 0
             elif spl[0] == 'output':
-                is_input = False
+                if spl[1] == 'logic':
+                    ty = 1
+                else:
+                    ty = 2
             else:
                 continue
             # determine width
@@ -58,16 +62,18 @@ def scrape_aws_ports():
             else:
                 width = 1
                 name = spl[1]
-            if is_input:
+            if ty == 0:
                 inputs.append((name, width))
+            elif ty == 1:
+                output_logics.append((name, width))
             else:
                 outputs.append((name, width))
-    return inputs, outputs
+    return inputs, outputs, output_logics
 
 
 def create_aws_shell():
     # Get io_in and io_out ports for shell so that we can initialize them all to tied off values.
-    ports_in, ports_out = scrape_aws_ports()
+    ports_in, ports_out, ports_logics = scrape_aws_ports()
     f = open(f"{os.environ.get('COMPOSER_AWS_SDK_DIR')}/hdk/common/shell_stable/new_cl_template/"
              f"design/cl_template.sv")
     ct = open(f"{os.environ.get('COMPOSER_ROOT')}/Composer-Hardware/vsim/generated-src/composer.v")
@@ -165,6 +171,12 @@ def create_aws_shell():
                 # do tie-offs that can be overriden later
                 for port, width in ports_out:
                     g.write(f"assign {port} = 0;\n")
+                if len(ports_logics) > 0:
+                    g.write(f"always @(posedge clk)\n"
+                            f"begin")
+                    for port, width in ports_logics:
+                        g.write(f"\t{port} <= 0;\n")
+                    g.write(f"end")
                 for pr in ct_io:
                     if pr['name'] == 'clock' or pr['name'] == 'reset':
                         continue
