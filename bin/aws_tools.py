@@ -68,7 +68,7 @@ def scrape_aws_ports():
                 begin = ln.find('[') + 1
                 end = ln.find(':')
                 width = ln[begin:end].strip()
-                subt = ln[ln.find(']') + 1:].split()
+                subt = ln[ln.rfind(']') + 1:].split()
                 name = subt[0]
                 print(f"length of {name} is {width} from {ln.strip()}\t{begin}\t{end}\t")
             else:
