@@ -462,7 +462,7 @@ def create_aws_shell():
         else:
             if int(port_out_width) > 1:
                 set_to = f"{port_out_width}'b" + (set_to * int(port_out_width))
-                g.write(f"assign {port_out_name} = {set_to};\n")
+            g.write(f"assign {port_out_name} = {set_to};\n")
 
 
     g.write("// begin secondary tie-offs\n")
