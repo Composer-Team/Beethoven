@@ -42,6 +42,7 @@ elif opts['backend'] == 'aws':
         print("HDK_DIR not set. This is usually set as part of aws-fpga setup. Please source hdk_setup.sh in the aws-fpga repo before running this.")
         hdk_dir = f"{aws}/hdk"
         os.environ["HDK_DIR"] = hdk_dir
+        exit(1)
     aws_tools.create_aws_shell()
     path = f"{hdk_dir}/cl/developer_designs/prepare_new_cl.sh"
     print(path)
@@ -61,7 +62,8 @@ elif opts['backend'] == 'aws':
     tcl_name = "build/scripts/synth_composer_aws.tcl"
     os.system(f"mv build/scripts/synth_cl_hello_world.tcl {tcl_name} &&"
               f" sed -i 's/\\?v/sv/g' {tcl_name} && rm -f design/cl_template.sv")
-    dvdir = f"{aws}/hdk/cl/developer_designs/"
+    dvdir = f"{aws}/hdk/cl/developer_designs/composer/"
+    os.system(f"mkdir {dvdir}")
     os.system(f"rm -rf {dvdir}/build {dvdir}/design &&"
               f"cp -r build {dvdir}/ && cp -r design {dvdir}/ && export EMAIL=chriskjellqvist@gmail.com &&"
               f"export CL_DIR={dvdir} && "

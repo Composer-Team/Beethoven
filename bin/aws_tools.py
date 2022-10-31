@@ -253,12 +253,6 @@ def create_aws_shell():
         else:
             g.write(f"wire [{int(pr['width']) - 1}:0] {pr['wire']};\n")
     # do tie-offs that can be overriden later
-    for port, width in ports_out + ports_logics:
-        if port.find('ack') != -1:
-            assign = 1
-        else:
-            assign = 0
-        g.write(f"assign {port} = {assign};\n")
     # if len(ports_logics) > 0:
     #     g.write(f"always @(posedge clk)\n"
     #             f"begin\n")
@@ -289,20 +283,9 @@ def create_aws_shell():
                 g.write(f"wire [{width - 1}:0] {k};\n")
             g.write(f"assign {k} = {lst[0]};\n")
         elif k[:4] == 'axi4':
-            partname = k.split("_")[1]
-            valid_axi_parts.add(partname)
-            if width == 1:
-                g.write(f'wire [2:0] {k};\n')
-            else:
-                g.write(f'wire [{width - 1}:0] {k} [2:0];\n')
-            # first 3 go in the sh_ddr module, last goes directly to shell
-            maxidx = min(3, len(lst))
-            for i, ele in enumerate(lst[:maxidx]):
-                g.write(f"assign {k}[{i}] = {ele};\n")
-            for i in range(3 - len(lst) - 1):
-                g.write(f"assign {k}[{3 - i}] = {width}'b0;\n")
             found = False
-            # deal with DDR_C
+            # deal with DDR_C first to scrape out_port width
+            port_out_width = -1
             for port_in_name, port_in_width in ports_in:
                 if port_in_name.find("ddr_" + partname) != -1:
                     if found:
@@ -326,15 +309,26 @@ def create_aws_shell():
                         found = True
                         if port_out_width != width:
                             commit = False
-                            if not is_number(port_out_width) or not is_number(width):
-                                print(f"FATAL port2 in width headache '{port_out_name}' '{port_out_width}' '{lst[-1]}' '{width}'")
-                                exit(1)
-                            else:
-                                port_out_width = int(port_out_width) + 1 
+                            port_out_width = int(port_out_width) + 1
                             if port_out_width != width:
                                 g.write(f"assign {port_out_name} = " + "{" + f"{int(port_out_width)-int(width)}'b0, {lst[-1]}" + "};\n")
                                 continue
                         g.write(f"assign {port_out_name} = {lst[-1]};\n")
+            partname = k.split("_")[1]
+            valid_axi_parts.add(partname)
+            if port_out_width == 1:
+                g.write(f'wire [2:0] {k};\n')
+            else:
+                g.write(f'wire [{port_out_width - 1}:0] {k} [2:0];\n')
+            # first 3 go in the sh_ddr module, last goes directly to shell
+            for i, ele in enumerate(lst[:3]):
+                if width == port_out_width:
+                    g.write(f"assign {k}[{i}] = {ele};\n")
+                else:
+                    g.write(f"assign {k}[{i}] = " + "{" + f"{int(port_out_width)-int(width)}'b0, {ele}" + "};\n")
+            for i in range(3 - len(lst) - 1):
+                g.write(f"assign {k}[{3 - i}] = {port_out_width}'b0;\n")
+
         else:
             print("GOT A WEIRD KEY: " + str(k))
             exit(1)
