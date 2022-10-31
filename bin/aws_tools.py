@@ -52,7 +52,7 @@ def scrape_aws_ports():
                 # it has a width > 1
                 begin = spl[1].find('[')+1
                 end = spl[1].find(':')
-                width = int(spl[1][begin:end])
+                width = spl[1][begin:end]
                 name = spl[2]
             else:
                 width = 1
