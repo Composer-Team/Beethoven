@@ -250,7 +250,7 @@ def create_aws_shell():
         f"\tbegin\n"
         f"\t\tpre_sync_rst_n <= 1;\n"
         f"\t\tsync_rst_n <= pre_sync_rst_n;\n"
-        f"\tend")
+        f"\tend\n")
     concats = {}
 
     ############# INIT ALL COMPOSER STUFF ################
