@@ -33,7 +33,7 @@ def scrape_aws_ports():
         inputs = []
         outputs = []
         lns = f.readlines()
-        stripped = map(lambda x: x.strip().replace('logic', ''), lns)
+        stripped = map(lambda x: x.strip().replace('logic', '').replace(',', ''), lns)
         for ln in stripped:
             if ln == '':
                 continue
