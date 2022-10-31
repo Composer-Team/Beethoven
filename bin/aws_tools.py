@@ -163,7 +163,7 @@ def scrape_sh_ddr_ports():
                         name_start = i
                         continue
                 elif found_start and not found_end:
-                    if not c.isalpha() and c != '_':
+                    if not c.isalnum() and c != '_':
                         found_end = True
                         name_end = i
                         continue
@@ -450,11 +450,17 @@ def create_aws_shell():
     g.write("// begin secondary tie-offs\n")
     # Do tie-offs
     for name, width, ar_width in to_tie:
+        if 'ack' in name.lower():
+            set_to = "1"
+        else:
+            set_to = "0"
+        if width > 1:
+            set_to = f"{width}'b" + (set_to * width)
         if ar_width == 1:
-            g.write(f"assign {name} = 0;\n")
+            g.write(f"assign {name} = {set_to};\n")
         else:
             for i in range(ar_width):
-                g.write(f"assign {name}[{i}] = 0;\n")
+                g.write(f"assign {name}[{i}] = {set_to};\n")
 
     g.write("\nendmodule\n")
 
