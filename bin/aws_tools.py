@@ -1,33 +1,18 @@
 import os
 
 """
-ERROR: [Synth 8-1031] DDR_A_PRESENT is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:503]
-ERROR: [Synth 8-1031] DDR_B_PRESENT is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:504]
-ERROR: [Synth 8-1031] DDR_D_PRESENT is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:505]
-ERROR: [Synth 8-1031] cl_sh_pcis_awready is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:637]
-ERROR: [Synth 8-1031] cl_sh_pcis_wready is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:639]
-ERROR: [Synth 8-1031] cl_sh_pcis_bresp is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:641]
-ERROR: [Synth 8-1031] cl_sh_pcis_bid is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:642]
-ERROR: [Synth 8-1031] cl_sh_pcis_bvalid is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:643]
-ERROR: [Synth 8-1031] cl_sh_pcis_arready is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:645]
-ERROR: [Synth 8-1031] cl_sh_pcis_rdata is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:647]
-ERROR: [Synth 8-1031] cl_sh_pcis_rresp is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:648]
-ERROR: [Synth 8-1031] cl_sh_pcis_rid is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:649]
-ERROR: [Synth 8-1031] cl_sh_pcis_rlast is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:650]
-ERROR: [Synth 8-1031] cl_sh_pcis_rvalid is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:651]
-ERROR: [Synth 8-1751] cannot index into non-array cl_sh_pcim_awvalid [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:658]
-ERROR: [Synth 8-1751] cannot index into non-array cl_sh_pcim_wlast [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:662]
-ERROR: [Synth 8-1751] cannot index into non-array cl_sh_pcim_wvalid [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:663]
-ERROR: [Synth 8-1751] cannot index into non-array cl_sh_pcim_bready [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:665]
-ERROR: [Synth 8-1751] cannot index into non-array cl_sh_pcim_arvalid [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:671]
-ERROR: [Synth 8-1751] cannot index into non-array cl_sh_pcim_rready [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:673]
-ERROR: [Synth 8-1031] ddr_sh_stat_ack is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:676]
-ERROR: [Synth 8-1031] ddr_sh_stat_rdata is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:677]
-ERROR: [Synth 8-1031] ddr_sh_stat_rdata is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:678]
-ERROR: [Synth 8-1031] ddr_sh_stat_rdata is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:679]
-ERROR: [Synth 8-1031] ddr_sh_stat_int is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:680]
+ERROR: [Synth 8-2715] syntax error near . [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:678]
+ERROR: [Synth 8-2841] use of undefined macro CL_VERSION [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:750]
+ERROR: [Synth 8-2715] syntax error near ; [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:750]
+ERROR: [Synth 8-1031] stat_clk is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:477]
+ERROR: [Synth 8-1031] stat_rst_n is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:479]
+ERROR: [Synth 8-1031] cl_sh_ddr_awuser is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:817]
+ERROR: [Synth 8-1031] cl_sh_ddr_awuser is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:818]
+ERROR: [Synth 8-1031] cl_sh_ddr_awuser is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:819]
+ERROR: [Synth 8-1031] cl_sh_ddr_aruser is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:823]
+ERROR: [Synth 8-1031] cl_sh_ddr_aruser is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:824]
+ERROR: [Synth 8-1031] cl_sh_ddr_aruser is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:825]
 """
-
 
 def is_number(q):
     # noinspection PyBroadException
@@ -47,7 +32,7 @@ def scrape_aws_ports():
         stripped = map(lambda x: x.strip().replace(',', '').replace('wire', ''), lns)
         for ln in stripped:
             if '//' in ln:
-                ln = ln[ln.find('//')+2:].strip()
+                ln = ln[:ln.find('//')].strip()
             if ln == '':
                 continue
             spl = ln.split()
@@ -139,6 +124,10 @@ def scrape_sh_ddr_ports():
     with open(f"{os.environ['COMPOSER_AWS_SDK_DIR']}/hdk/common/shell_stable/design/sh_ddr/sim/sh_ddr.sv") as f:
         lns = f.readlines()
         for ln in lns:
+            if '//' in ln:
+                print("found // in " + ln)
+                ln = ln[:ln.find('//')].strip()
+                print("is now " + ln)
             ln = ln.strip().replace('logic', '')
             if ln.find(');') != -1:
                 return sh_ddr_in, sh_ddr_out
@@ -221,7 +210,10 @@ def create_aws_shell():
             f"`define COMPOSER_DEFINES\n"
             f"`define CL_NAME composer_aws\n"
             f"`define FPGA_LESS_RST\n"
-            f"`define NO_XDMA\n")
+            f"`define NO_XDMA\n"
+            f"`ifndef CL_VERSION\n"
+            f"`define CL_VERSION 32'hee_ee_ee_00\n"
+            f"`endif\n")
     # TODO this currently doesn't work for whatever reason, systemverilog doesn't see these defs
     for letter in ['A', 'B', 'D']:
         g.write(f"`ifndef DDR_{letter}_ABSENT\n"
@@ -340,7 +332,6 @@ def create_aws_shell():
                             else:
                                 port_out_width = int(port_out_width) + 1 
                             if port_out_width != width:
-                                print(f"port {port_out_name} {port_out_width} {width}")
                                 g.write(f"assign {port_out_name} = " + "{" + f"{int(port_out_width)-int(width)}'b0, {lst[-1]}" + "};\n")
                                 continue
                         g.write(f"assign {port_out_name} = {lst[-1]};\n")
@@ -362,9 +353,11 @@ def create_aws_shell():
             width_str = ''
         else:
             width_str = f'[{ddr_width-1}:0] '
+        if 'clk' in ddr_name or 'rst' in ddr_name:
+            continue
+        ddr_stats[ddr_name] = wire_name
         g.write(f"wire {width_str}{wire_name};\n"
                 f"assign {wire_name} = {ddr_name};\n")
-        ddr_stats[ddr_name] = wire_name
 
     # noinspection DuplicatedCode
     for ddr_name, ddr_width, ddr_ar_width in ddr_out:
@@ -400,10 +393,10 @@ def create_aws_shell():
             f".clk(clk),\n"
             f".rst_n(sync_rst_n),\n"
             f".stat_clk(clk),\n"
-            f".stat_rst_n(sync_rst_n),\n")
+            f".stat_rst_n(sync_rst_n)")
     # write signals that go straight to shell (DDR pins)
     for letter, number in [('A', '0'), ('B', '1'), ('D', '3')]:
-        g.write(f".CLK_300M_DIMM{number}_DP(CLK_300M_DIMM{number}_DP),\n"
+        g.write(f",\n.CLK_300M_DIMM{number}_DP(CLK_300M_DIMM{number}_DP),\n"
                 f".CLK_300M_DIMM{number}_DN(CLK_300M_DIMM{number}_DP),\n"
                 f".M_{letter}_ACT_N(M_{letter}_ACT_N),\n"
                 f".M_{letter}_MA(M_{letter}_MA),\n"
