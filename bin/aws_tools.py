@@ -305,7 +305,7 @@ def create_aws_shell():
                         found = True
                         if port_out_width != width:
                             if not is_number(port_out_width) or not is_number(width):
-                                print("FATAL port2 in width headache")
+                                print("FATAL port2 in width headache" + str(port_out_width) + " " + str(width))
                                 exit(1)
                             g.write(f"assign {port_out_name} = {(int(width) - int(port_out_width))}'b0, {lst[-1]};\n")
                         else:
