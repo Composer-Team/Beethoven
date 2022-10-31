@@ -443,10 +443,12 @@ def create_aws_shell():
     g.write("// begin tie-offs\n")
     for port_out_name, port_out_width in ports_out + ports_logics:
         lower = str(port_out_name).lower()
-        if lower in reserved or lower[:2] == 'M_' or lower.find('ddr') != -1 or lower.find('ocl') != -1:
+        if lower in reserved or port_out_name[:2] == 'M_' or lower.find('ddr') != -1\
+                or lower.find('ocl') != -1 or lower.find('clk') != -1 or lower.find('rst') != -1:
             continue
         g.write(f"assign {port_out_name} = 0;\n")
 
+    g.write("// begin secondary tie-offs\n")
     # Do tie-offs
     for name, width, ar_width in to_tie:
         if ar_width == 1:
