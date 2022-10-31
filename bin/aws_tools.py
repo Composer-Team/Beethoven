@@ -142,7 +142,10 @@ def scrape_sh_ddr_ports():
             is_array = ln.find('[') != ln.rfind('[')
             start = ln.find('[')
             end = ln.find(']')
-            width = int(ln[start + 1:end].split(':')[0]) + 1
+            if start == -1:
+                width = 1
+            else:
+                width = int(ln[start + 1:end].split(':')[0]) + 1
             if is_array:
                 start = ln.rfind('[')
                 name = ln[end:start].strip()
