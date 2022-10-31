@@ -170,6 +170,7 @@ def scrape_sh_ddr_ports():
                 name = name_str[name_start:name_end]
             else:
                 name = name_str[name_start:]
+            print(f"'{name_str}' '{name}' {name_start} {name_end}")
 
             if bracket_count == 0:
                 width = 1
