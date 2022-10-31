@@ -270,6 +270,8 @@ def create_aws_shell():
                     g.write(ln)
         elif state == 3:
             strip = ln.strip()
+            if strip.find('sh_pcis') != -1:
+                continue
             if ndram < 4:
                 # only need to scrape for DRAM_C if we need all 4 interfaces
                 g.write(ln)
