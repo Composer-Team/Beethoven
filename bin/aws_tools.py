@@ -285,9 +285,9 @@ def create_aws_shell():
                 continue
             spl = ln.split()
             name = spl[1]
-            print("considering " + name)
             if name.find("[") != -1:
                 name = name[:name.find("[")]
+            print("considering " + name)
             if to_init.count(name) != 0:
                 continue
             prefix = name[:9]
