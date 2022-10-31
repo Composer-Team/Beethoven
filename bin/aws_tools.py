@@ -145,27 +145,26 @@ def scrape_sh_ddr_ports():
             is_input = ln.find('input') != -1
             is_output = ln.find('output') != -1
             if not is_output and not is_input:
-                # then it's an inout and not only do we not _want_ to deal with those, but they're already handled (they're the raw DDR pins)
+                # then it's an inout and not only do we not _want_ to deal with those,
+                # but they're already handled (they're the raw DDR pins)
                 continue
-            is_array = ln.find('[') != ln.rfind('[')
-            start = ln.find('[')
-            end = ln.find(']')
-            if start == -1:
+            bracket_count = ln.count('[')
+            if bracket_count == 0:
                 width = 1
-            else:
-                width = int(ln[start + 1:end].split(':')[0]) + 1
-            if is_array:
-                start = ln.rfind('[')
-                name = ln[end+1:start].strip()
-                end = ln.rfind(']')
-                ar_width = int(ln[start + 1:end].split(':')[0]) + 1
-            else:
+                name = ln.replace(',', '').split()[1]
                 ar_width = 1
-                if width == 1:
-                    name = ln.replace(',', '').split()[1]
-                else:
-                    name = ln[end:].replace(',', '').split()[0]
-            print(f"{ln} => {name}\t{is_array}")
+            elif bracket_count == 1:
+                width = ln[ln.find('[')+1:ln.find(':')]
+                name = ln[ln.find(']'):].strip().split()[0]
+                ar_width = 1
+            elif bracket_count == 2:
+                width = ln[ln.find('[')+1:ln.find(':')]
+                name = ln[ln.find(']'):].strip().split()[0]
+                ar_width = ln[ln.rfind('[')+1:ln.rfind(':')]
+            else:
+                print(f"too many bracketk {ln}")
+                exit(1)
+            print(f"{ln} => {name}\t{bracket_count}")
             if is_input:
                 sh_ddr_in.append((name, width, ar_width))
             elif is_output:
