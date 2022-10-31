@@ -176,7 +176,7 @@ def create_aws_shell():
                     g.write(f"assign {port} = 0;\n")
                 if len(ports_logics) > 0:
                     g.write(f"always @(posedge clk)\n"
-                            f"begin")
+                            f"begin\n")
                     for port, width in ports_logics:
                         g.write(f"\t{port} <= 0;\n")
                     g.write(f"end")
