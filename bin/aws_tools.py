@@ -107,7 +107,6 @@ def scrape_cl_ports():
                 name = name[:-1]
             name = name.strip()
             if name == 'clock' or name == 'reset':
-                ct_io.append({'name': name})
                 continue
             wire_name = f"COMPOSER_wire_{wire_id}"
             wire_id = wire_id + 1
@@ -170,13 +169,13 @@ def create_aws_shell():
     ports_in, ports_out, ports_logics = scrape_aws_ports()
     to_init = [q[0] for q in ports_out + ports_in]
 
-    ct_io = scrape_cl_ports()
+    cl_io = scrape_cl_ports()
     # Now we have all IOs and their widths, time to organize
-    axil_io = list(filter(lambda x: x['name'][:3] == 'ocl', ct_io))
-    dram_io = list(filter(lambda x: x['name'][:8] == 'axi4_mem', ct_io))
+    axil_io = list(filter(lambda x: x['name'][:3] == 'ocl', cl_io))
+    dram_io = list(filter(lambda x: x['name'][:8] == 'axi4_mem', cl_io))
 
     # only remaining pins should be clock and reset
-    assert len(dram_io) + len(axil_io) + 2 == len(ct_io)
+    assert len(dram_io) + len(axil_io) + 2 == len(cl_io)
     # How many AXI4-Mem interfaces did we intialize Composer with?
     if len(dram_io) == 0:
         ndram = 0
@@ -218,7 +217,7 @@ def create_aws_shell():
     concats = {}
 
     ############# INIT ALL COMPOSER STUFF ################
-    for pr in ct_io:
+    for pr in cl_io:
         if pr['name'] == 'clock' or pr['name'] == 'reset':
             continue
         if pr['width'] == 1:
@@ -246,7 +245,7 @@ def create_aws_shell():
 
     valid_axi_parts = set()
     # Do AXI4 and OCL concatenations
-    for pr in ct_io:
+    for pr in cl_io:
         key = pr['name'].split('_')[0] + '_' + pr['setname']
         if concats.get(key) is None:
             concats[key] = ([pr['wire']], pr['width'])
@@ -334,18 +333,15 @@ def create_aws_shell():
         ddr_stats[ddr_name] = wire_name
 
     # Instantiate actual ComposerTop module
-    g.write("ComposerTop myTop(\n")
-    for i, pr in enumerate(ct_io):
-        if pr['name'] == 'clock':
-            g.write(f"\t.clock(clk),\n")
-        elif pr['name'] == 'reset':
-            g.write(f"\t.reset(sync_rst_n),\n")
+    g.write("ComposerTop myTop(\n"
+            "\t.clock(clk),\n"
+            "\t.reset(sync_rst_n),\n")
+    for i, pr in enumerate(cl_io):
+        g.write(f"\t.{pr['name']}({pr['wire']})")
+        if i == len(cl_io) - 1:
+            g.write("\n")
         else:
-            g.write(f"\t.{pr['name']}({pr['wire']})")
-            if i == len(ct_io) - 1:
-                g.write("\n")
-            else:
-                g.write(",\n")
+            g.write(",\n")
     g.write(');\n')
 
     # Instantiate SH_DDR module
