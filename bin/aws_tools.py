@@ -58,6 +58,7 @@ def scrape_aws_ports():
                 begin = spl[1].find('[')+1
                 end = spl[1].find(':')
                 width = spl[1][begin:end]
+                print(ln)
                 print(name)
                 subt = ln[ln.find(']')+1:].split()
                 name = subt[0]
