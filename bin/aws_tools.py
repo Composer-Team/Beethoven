@@ -161,18 +161,20 @@ def scrape_sh_ddr_ports():
             else:
                 name = name_str[name_start:]
 
-            if bracket_count == 0:
-                width = 1
-                ar_width = 1
-            elif bracket_count == 1:
-                width = 1+int(ln[ln.find('[')+1:ln.find(':')])
-                ar_width = 1
-            elif bracket_count == 2:
-                width = 1+int(ln[ln.find('[')+1:ln.find(':')])
-                ar_width = 1+int(ln[ln.rfind('[')+1:ln.rfind(':')])
+            # Find width
+            before_name = name_str[:name_start]
+            if '[' in before_name:
+                width = 1+int(before_name[before_name.find('[')+1:before_name.find(':')])
             else:
-                print(f"too many bracketk {ln}")
-                exit(1)
+                width = 1
+
+            # Find ar_width
+            after_name = name_str[name_end:]
+            if '[' in after_name:
+                ar_width = 1+int(after_name[after_name.find('[')+1:after_name.find(':')])
+            else:
+                ar_width = 1
+
             if is_input:
                 sh_ddr_in.append((name, width, ar_width))
             elif is_output:
@@ -190,6 +192,17 @@ def create_aws_shell():
     # Now we have all IOs and their widths, time to organize
     axil_io = list(filter(lambda x: x['name'][:3] == 'ocl', cl_io))
     dram_io = list(filter(lambda x: x['name'][:8] == 'axi4_mem', cl_io))
+
+    def create_wire(nstr, w, arw):
+        if w == 1:
+            width_str = ""
+        else:
+            width_str = f'[{w - 1}:0] '
+        if arw == 1:
+            ar_str = ""
+        else:
+            ar_str = f" [{arw - 1}:0]"
+        g.write(f"wire {width_str}{nstr}{ar_str};\n")
 
     # How many AXI4-Mem interfaces did we intialize Composer with?
     if len(dram_io) == 0:
@@ -304,7 +317,6 @@ def create_aws_shell():
                 if pwidth != width:
                     print(f"This happened 3 :( {pname} {partname} {width} {pwidth}")
                 g.write(f"assign {pname} = {lst[0]};\n")
-
         elif k[:4] == 'axi4':
             found = False
             # deal with DDR_C first to scrape out_port width
@@ -336,13 +348,25 @@ def create_aws_shell():
                     g.write(f"assign {pname} = {lst[0]};\n")
                 is_out=True
 
-            if pwidth == 1:
-                wstr = ""
+            def find_ddr_part(part, part_list):
+                for dpart, dwidth, darwid in ddr_in + ddr_out:
+                    if part in dpart:
+                        return dwidth, darwid, dpart
+                return None, None
+
+            dwidth, darwid, dpartname = find_ddr_part(partname, ddr_in + ddr_out)
+            if dwidth is None:
+                dwidth = pwidth
+                darwid = 3
+            if dwidth == 1:
+                dstr = ""
             else:
-                wstr = f"[{pwidth-1}:0] "
-
-            g.write(f'wire {wstr}{k} [2:0];\n')
-
+                dstr = f"[{dwidth-1}:0] "
+            if darwid == 1:
+                arstr = ""
+            else:
+                arstr = f" [{darwid-1}:0]"
+            g.write(f"wire {dstr}{k}{arstr};\n")
             # first 3 go in the sh_ddr module, last goes directly to shell
             for i, ele in enumerate(lst[1:]):
                 if width == pwidth:
@@ -358,38 +382,32 @@ def create_aws_shell():
 
     # Route stat pins between sh_ddr module and shell
     ddr_stats = {}
-    ddr_wire_id = 0
-    # noinspection DuplicatedCode
-    for ddr_name, ddr_width, ddr_ar_width in ddr_in:
-        if ddr_name.find("stat") == -1:
-            continue
-        wire_name = f"wire_stat_{ddr_wire_id}"
-        ddr_wire_id = ddr_wire_id + 1
-        assert ddr_ar_width == 1
-        if ddr_width == 1:
-            width_str = ''
-        else:
-            width_str = f'[{ddr_width-1}:0] '
-        if 'clk' in ddr_name or 'rst' in ddr_name:
-            continue
-        ddr_stats[ddr_name] = wire_name
-        g.write(f"wire {width_str}{wire_name};\n"
-                f"assign {wire_name} = {ddr_name};\n")
 
-    # noinspection DuplicatedCode
-    for ddr_name, ddr_width, ddr_ar_width in ddr_out:
-        if ddr_name.find("stat") == -1:
-            continue
-        wire_name = f"wire_stat_{ddr_wire_id}"
-        ddr_wire_id = ddr_wire_id + 1
-        assert ddr_ar_width == 1
-        if ddr_width == 1:
-            width_str = ''
+
+    def add_stats_wires(ddr_lst, is_input):
+        wire_id = 0
+        if is_input:
+            wids = 1
         else:
-            width_str = f'[{ddr_width-1}:0] '
-        g.write(f"wire {width_str}{wire_name};\n"
-                f"assign {ddr_name} = {wire_name};\n")
-        ddr_stats[ddr_name] = wire_name
+            wids = 0
+        if is_input:
+            my_list = ddr_in
+        else:
+            my_list = ddr_out
+        for ddr_name, ddr_width, ddr_ar_width in my_list:
+            if ddr_name.find("stat") == -1:
+                continue
+            wire_name = f"wire_stat_{wids}_{wire_id}"
+            ddr_wire_id = wire_id + 1
+            create_wire(wire_name, ddr_width, ddr_ar_width)
+            ddr_stats[ddr_name] = wire_name
+            if is_input:
+                g.write(f"assign {wire_name} = {ddr_name};\n")
+            else:
+                g.write(f"assign {ddr_name} = {wire_name};\n")
+
+    add_stats_wires(ddr_in, True)
+    add_stats_wires(ddr_out, False)
 
     # Instantiate actual ComposerTop module
     g.write("ComposerTop myTop(\n"
@@ -529,7 +547,6 @@ def write_encrypt_script_from_base_inline(fname, ):
             elif "-lang verilog" in ln:
                 f.write("encrypt -k $HDK_SHELL_DIR/build/scripts/vivado_keyfile_2017_4.txt -lang verilog  [glob -nocomplain -- $TARGET_DIR/*.{v,sv,vh,inc}]\n")
             else:
-                print(f"glob not found in {ln.strip()}")
                 f.write(ln)
 
 
