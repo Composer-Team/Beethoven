@@ -36,10 +36,10 @@ def scrape_aws_ports():
             if ln == '':
                 continue
             spl = ln.split()
-            if spl[0] == 'input':
+            if 'input' in ln:
                 ty = 0
-            elif spl[0] == 'output':
-                if spl[1][:5] == 'logic':
+            elif 'output' in ln:
+                if 'logic' in ln:
                     ty = 1
                 else:
                     ty = 2
@@ -277,7 +277,6 @@ def create_aws_shell():
             concats[key] = (concats[key][0] + [pr['wire']], pr['width'], pr['direction'])
     for k in concats.keys():
         lst, width, direction = concats[k]
-        print(f"{k} is width {width}")
         partname = k.split("_")[1]
         if k[:3] == 'ocl':
             def search_for_ocl_part(part, part_list):
@@ -288,22 +287,25 @@ def create_aws_shell():
             pname, pwidth = search_for_ocl_part(partname, ports_in)
             if pname is not None:
                 if pwidth != width:
-                    print(f"This happened 2 :( {pname} {k}")
-                    exit(1)
-                g.write(f"assign {lst[0]} = {pname};\n")
+                    print(f"Warning: CL port '{k}' has width {width} and will be tied to shell port '{pname}' with width '{pwidth}'."
+                          f"This may result in unusual behavior due to truncated bits!")
+                    g.write(f"assign {lst[0]} = {pname}[{width-1}:0];\n")
+                else:
+                    g.write(f"assign {lst[0]} = {pname};\n")
             else:
                 pname, pwidth = search_for_ocl_part(partname, ports_out + ports_logics)
                 if pname is None:
                     if direction == 'input':
                         g.write(f"assign {lst[0]} = 0;\n")
-                    print(f"couldn't find match for {partname}")
+                        print(f"couldn't find match for {partname}/{lst[0]}, tieing to 0")
+                    else:
+                        print(f"couldn't find match for {partname}")
                     continue
                 if pwidth != width:
                     print(f"This happened 3 :( {pname} {partname} {width} {pwidth}")
                 g.write(f"assign {pname} = {lst[0]};\n")
 
         elif k[:4] == 'axi4':
-            print("doing " + str(k))
             found = False
             # deal with DDR_C first to scrape out_port width
             is_out = -1
@@ -319,11 +321,9 @@ def create_aws_shell():
             is_out = False
             if pname is not None:
                 if pwidth != width:
-                    print(f"This happened :( for {pname} on {partname}")
-                    print(f"{pname} is {pwidth}\t{partname} {width}")
-                    exit(1)
-                else:
-                    g.write(f"assign {lst[-1]} = {pname};\n")
+                    print(f"Warning! CL has part corresponding to {partname} with width{width}. Tieing it to "
+                          f"part {pname} with width {pwidth} via truncation which might cause some issues.")
+                g.write(f"assign {lst[-1]} = {pname};\n")
                 is_out = False
             else:
                 pname, pwidth = search_for_part(partname, ports_out + ports_logics)
@@ -336,7 +336,6 @@ def create_aws_shell():
                     g.write(f"assign {pname} = {lst[-1]};\n")
                 is_out=True
 
-            print(f"width of port {partname} is {pwidth} from {pname}")
             if pwidth == 1:
                 g.write(f'wire [2:0] {k};\n')
             else:
