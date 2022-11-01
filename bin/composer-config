@@ -60,7 +60,7 @@ elif opts['backend'] == 'aws':
     aws_tools.write_encrypt_script_from_base_inline("build/scripts/encrypt.tcl")
     os.system("mkdir -p build/checkpoints && mkdir -p build/reports")
 
-    aws_tools.rename("build/scripts/synth_cl_hello_world.tcl", "build/scripts/synth_composer_aws.tcl")
+    aws_tools.reformat_synth_script("build/scripts/synth_cl_hello_world.tcl", "build/scripts/synth_composer_aws.tcl")
     os.system('sed -i.bu "s/.?v/v/g" build/scripts/synth_composer_aws.tcl')
 
     tcl_name = "build/scripts/synth_composer_aws.tcl"

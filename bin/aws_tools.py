@@ -528,15 +528,20 @@ def write_encrypt_script_from_base_inline(fname, ):
                     to_write = None
             elif "-lang verilog" in ln:
                 f.write("encrypt -k $HDK_SHELL_DIR/build/scripts/vivado_keyfile_2017_4.txt -lang verilog  [glob -nocomplain -- $TARGET_DIR/*.{v,sv,vh,inc}]\n")
-            elif "glob $ENC_SRC" in ln:
-                f.write(f"read_verilog -sv [glob {os.getcwd()}/design/*v]")
             else:
-
+                print(f"glob not found in {ln.strip()}")
                 f.write(ln)
 
 
-def rename(fname, oname):
-    os.system(f"mv {fname} {oname}")
+def reformat_synth_script(fname, oname):
+    with open(fname) as f:
+        lns = f.readlines()
+    with open(oname, 'w') as g:
+        for ln in lns:
+            if "glob $ENC_SRC" in ln:
+                g.write(f"read_verilog -sv [glob {os.getcwd()}/*v]")
+            else:
+                g.write(ln)
 
 
 def create_dcp_script_inline(fname):
