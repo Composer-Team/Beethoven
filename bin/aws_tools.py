@@ -513,7 +513,7 @@ def write_encrypt_script_from_base_inline(fname):
                 "`define CL_SH_ID1 32'h1D51_FEDC\n")
     with open(fname) as f:
         lns = f.readlines()
-    to_write = ["file copy -force $CL_DIR/design/composer_aws.v $TARGET_DIR\n",
+    to_write = ["file copy -force $CL_DIR/design/composer_aws.sv $TARGET_DIR\n",
                 "file copy -force $CL_DIR/design/composer.v $TARGET_DIR\n",
                 "file copy -force $CL_DIR/design/cl_id_defines.vh $TARGET_DIR\n"]
     with open(fname, 'w') as f:
