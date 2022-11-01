@@ -527,7 +527,7 @@ def write_encrypt_script_from_base_inline(fname):
                         f.write(tw)
                     to_write = None
             elif "-lang verilog" in ln:
-                f.write("encrypt -k $HDK_SHELL_DIR/build/scripts/vivado_keyfile_2017_4.txt -lang verilog  [glob -nocomplain -- $TARGET_DIR/*.{v,sv,vh,inc}]")
+                f.write("encrypt -k $HDK_SHELL_DIR/build/scripts/vivado_keyfile_2017_4.txt -lang verilog  [glob -nocomplain -- $TARGET_DIR/*.{v,sv,vh,inc}]\n")
             else:
                 f.write(ln)
 
