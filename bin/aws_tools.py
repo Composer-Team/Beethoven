@@ -345,7 +345,7 @@ def create_aws_shell():
                 else:
                     g.write(f"assign {k}[{i}] = " + "{" + f"{pwidth-int(width)}'b0, {ele}" + "};\n")
             for i in range(3 - len(lst) - 1):
-                g.write(f"assign {k}[{3 - i}] = {port_width}'b0;\n")
+                g.write(f"assign {k}[{3 - i}] = {pwidth}'b0;\n")
 
         else:
             print("GOT A WEIRD KEY: " + str(k))
@@ -400,7 +400,8 @@ def create_aws_shell():
 
     # Instantiate SH_DDR module
     g.write(f"// DDR controller instantiation\n"
-            f"sh_ddr #(.DDR_A_PRESENT(`DDR_A_PRESENT), .DDR_B_PRESENT(`DDR_B_PRESENT), .DDR_D_PRESENT(`DDR_D_PRESENT))\n"
+            #f"sh_ddr #(.DDR_A_PRESENT(`DDR_A_PRESENT), .DDR_B_PRESENT(`DDR_B_PRESENT), .DDR_D_PRESENT(`DDR_D_PRESENT))\n"
+            f"sh_ddr #(.DDR_A_PRESENT(0), .DDR_B_PRESENT(0), .DDR_D_PRESENT(0))\n"
             f"\tSH_DDR(\n"
             f".clk(clk),\n"
             f".rst_n(sync_rst_n),\n"
@@ -502,4 +503,31 @@ def create_aws_shell():
     g.write("\nendmodule\n")
 
     g.close()
+
+
+def write_encrypt_script_from_base_inline(fname):
+    with open("design/cl_id_defines.vh", 'w') as f:
+        f.write("`define CL_SH_ID0 32'hF002_1D0F\n"
+                "`define CL_SH_ID1 32'h1D51_FEDC\n")
+    with open(fname) as f:
+        lns = f.readlines()
+    to_write = ["file copy -force $CL_DIR/design/composer_aws.v $TARGET_DIR\n",
+                "file copy -force $CL_DIR/design/composer.v $TARGET_DIR\n",
+                "file copy -force $CL_DIR/design/cl_id_defines.vh $TARGET_DIR\n"]
+    with open(fname, 'w') as f:
+        for ln in lns:
+            if "file copy" in ln:
+                if to_write is not None:
+                    for tw in to_write:
+                        f.write(tw)
+                    to_write = None
+            else:
+                f.write(ln)
+
+
+def rename(fname, oname):
+    os.system(f"mv {fname} {oname}")
+
+def create_dcp_script_inline(fname):
+    os.system(f"sed -i.bu 's/cl_hello_world/composer_aws/g' {fname}")
 
