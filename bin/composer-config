@@ -54,7 +54,7 @@ elif opts['backend'] == 'aws':
     aws_tools.create_aws_shell()
 
     path = f"{hdk_dir}/common/shell_stable/new_cl_template/"
-    os.system(f"cp -rL {path}/build . && cp -rL {path}/design . && mv composer_aws.sv design/ &&"
+    os.system(f"cp -rL {path}/build . && mkdir -p design && mv composer_aws.sv design/ &&"
               f" cp generated-src/composer.v design/")
 
     aws_tools.write_encrypt_script_from_base_inline("build/scripts/encrypt.tcl")

@@ -323,7 +323,7 @@ def create_aws_shell():
                 if pwidth != width:
                     print(f"Warning! CL has part corresponding to {partname} with width{width}. Tieing it to "
                           f"part {pname} with width {pwidth} via truncation which might cause some issues.")
-                g.write(f"assign {lst[-1]} = {pname};\n")
+                g.write(f"assign {lst[0]} = {pname};\n")
                 is_out = False
             else:
                 pname, pwidth = search_for_part(partname, ports_out + ports_logics)
@@ -331,9 +331,9 @@ def create_aws_shell():
                     print(f"Couldn't find {partname} anywhere!")
                     continue
                 if pwidth != width:
-                    g.write(f"assign {pname} = " + "{" + f"{pwidth-int(width)}'b0, {lst[-1]}" + "};\n")
+                    g.write(f"assign {pname} = " + "{" + f"{pwidth-int(width)}'b0, {lst[0]}" + "};\n")
                 else:
-                    g.write(f"assign {pname} = {lst[-1]};\n")
+                    g.write(f"assign {pname} = {lst[0]};\n")
                 is_out=True
 
             if pwidth == 1:
@@ -344,12 +344,12 @@ def create_aws_shell():
             g.write(f'wire {wstr}{k} [2:0];\n')
 
             # first 3 go in the sh_ddr module, last goes directly to shell
-            for i, ele in enumerate(lst[:3]):
+            for i, ele in enumerate(lst[1:]):
                 if width == pwidth:
                     g.write(f"assign {k}[{i}] = {ele};\n")
                 else:
                     g.write(f"assign {k}[{i}] = " + "{" + f"{pwidth-int(width)}'b0, {ele}" + "};\n")
-            for i in range(3 - len(lst) - 1):
+            for i in range(4 - len(lst)):
                 g.write(f"assign {k}[{3 - i}] = {pwidth}'b0;\n")
 
         else:
@@ -539,7 +539,7 @@ def reformat_synth_script(fname, oname):
     with open(oname, 'w') as g:
         for ln in lns:
             if "glob $ENC_SRC" in ln:
-                g.write(f"read_verilog -sv [glob {os.getcwd()}/*v]")
+                g.write(f"read_verilog -sv [glob {os.getcwd()}/design/*v]")
             else:
                 g.write(ln)
 
