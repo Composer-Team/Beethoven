@@ -116,6 +116,7 @@ def scrape_cl_ports():
             ct_io.append({'width': width,
                           'name': name,
                           'wire': wire_name,
+                          'direction': spl[0],
                           'setname': dest.split('_')[-1]})
     return ct_io
 
@@ -270,12 +271,12 @@ def create_aws_shell():
     for pr in cl_io:
         key = pr['name'].split('_')[0] + '_' + pr['setname']
         if concats.get(key) is None:
-            concats[key] = ([pr['wire']], pr['width'])
+            concats[key] = ([pr['wire']], pr['width'], pr['direction'])
         else:
             assert concats[key][1] == pr['width']
-            concats[key] = (concats[key][0] + [pr['wire']], pr['width'])
+            concats[key] = (concats[key][0] + [pr['wire']], pr['width'], pr['direction'])
     for k in concats.keys():
-        lst, width = concats[k]
+        lst, width, direction = concats[k]
         print(f"{k} is width {width}")
         partname = k.split("_")[1]
         if k[:3] == 'ocl':
@@ -293,6 +294,8 @@ def create_aws_shell():
             else:
                 pname, pwidth = search_for_ocl_part(partname, ports_out + ports_logics)
                 if pname is None:
+                    if direction == 'input':
+                        g.write(f"assign {lst[0]} = 0;\n")
                     print(f"couldn't find match for {partname}")
                     continue
                 if pwidth != width:
@@ -399,7 +402,7 @@ def create_aws_shell():
     g.write(');\n')
 
     # Instantiate SH_DDR module
-    # f"sh_ddr #(.DDR_A_PRESENT(`DDR_A_PRESENT), .DDR_B_PRESENT(`DDR_B_PRESENT), .DDR_D_PRESENT(`DDR_D_PRESENT))\n"
+    # f"sh_ddr #(.DDR_Ax_PRESENT(`DDR_A_PRESENT), .DDR_B_PRESENT(`DDR_B_PRESENT), .DDR_D_PRESENT(`DDR_D_PRESENT))\n"
     g.write(f"// DDR controller instantiation\n"
             f"sh_ddr #(.DDR_A_PRESENT(0), .DDR_B_PRESENT(0), .DDR_D_PRESENT(0))\n"
             f"\tSH_DDR(\n"
