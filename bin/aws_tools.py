@@ -531,6 +531,7 @@ def write_encrypt_script_from_base_inline(fname, ):
             elif "glob $ENC_SRC" in ln:
                 f.write(f"read_verilog -sv [glob {os.getcwd()}/design/*v]")
             else:
+
                 f.write(ln)
 
 
