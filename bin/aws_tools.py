@@ -394,7 +394,7 @@ def create_aws_shell():
         else:
             my_list = ddr_out
         for ddr_name, ddr_width, ddr_ar_width in my_list:
-            if ddr_name.find("stat") == -1:
+            if 'stat' not in ddr_name or 'clk' in ddr_name or 'rst' in ddr_name:
                 continue
             wire_name = f"wire_stat_{wids}_{wire_id}"
             wire_id = wire_id + 1
