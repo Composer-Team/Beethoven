@@ -350,7 +350,7 @@ def create_aws_shell():
 
             def find_ddr_part(part, part_list):
                 for dpart, dwidth, darwid in ddr_in + ddr_out:
-                    if part in dpart:
+                    if f"_{part}" in dpart:
                         return dwidth, darwid, dpart
                 return None, None
 
