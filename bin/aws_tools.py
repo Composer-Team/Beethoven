@@ -510,7 +510,7 @@ def create_aws_shell():
     g.close()
 
 
-def write_encrypt_script_from_base_inline(fname):
+def write_encrypt_script_from_base_inline(fname, ):
     with open("design/cl_id_defines.vh", 'w') as f:
         f.write("`define CL_SH_ID0 32'hF002_1D0F\n"
                 "`define CL_SH_ID1 32'h1D51_FEDC\n")
@@ -528,12 +528,15 @@ def write_encrypt_script_from_base_inline(fname):
                     to_write = None
             elif "-lang verilog" in ln:
                 f.write("encrypt -k $HDK_SHELL_DIR/build/scripts/vivado_keyfile_2017_4.txt -lang verilog  [glob -nocomplain -- $TARGET_DIR/*.{v,sv,vh,inc}]\n")
+            elif "glob $ENC_SRC" in ln:
+                f.write(f"read_verilog -sv [glob {os.getcwd()}/design/*v]")
             else:
                 f.write(ln)
 
 
 def rename(fname, oname):
     os.system(f"mv {fname} {oname}")
+
 
 def create_dcp_script_inline(fname):
     os.system(f"sed -i.bu 's/cl_hello_world/composer_aws/g' {fname}")
