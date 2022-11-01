@@ -383,7 +383,6 @@ def create_aws_shell():
     # Route stat pins between sh_ddr module and shell
     ddr_stats = {}
 
-
     def add_stats_wires(ddr_lst, is_input):
         wire_id = 0
         if is_input:
@@ -398,7 +397,7 @@ def create_aws_shell():
             if ddr_name.find("stat") == -1:
                 continue
             wire_name = f"wire_stat_{wids}_{wire_id}"
-            ddr_wire_id = wire_id + 1
+            wire_id = wire_id + 1
             create_wire(wire_name, ddr_width, ddr_ar_width)
             ddr_stats[ddr_name] = wire_name
             if is_input:
