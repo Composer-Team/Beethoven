@@ -337,9 +337,12 @@ def create_aws_shell():
                 is_out=True
 
             if pwidth == 1:
-                g.write(f'wire [2:0] {k};\n')
+                wstr = ""
             else:
-                g.write(f'wire [{pwidth - 1}:0] {k} [2:0];\n')
+                wstr = f"[{pwidth-1}:0] "
+
+            g.write(f'wire {wstr}{k} [2:0];\n')
+
             # first 3 go in the sh_ddr module, last goes directly to shell
             for i, ele in enumerate(lst[:3]):
                 if width == pwidth:
@@ -399,7 +402,7 @@ def create_aws_shell():
         else:
             g.write(",\n")
     g.write(');\n')
-
+    # CHRIS TODO array is array, even with 1-width wires
     # Instantiate SH_DDR module
     # f"sh_ddr #(.DDR_Ax_PRESENT(`DDR_A_PRESENT), .DDR_B_PRESENT(`DDR_B_PRESENT), .DDR_D_PRESENT(`DDR_D_PRESENT))\n"
     g.write(f"// DDR controller instantiation\n"
