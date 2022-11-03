@@ -266,18 +266,6 @@ def create_aws_shell():
             g.write(f"wire {pr['wire']};\n")
         else:
             g.write(f"wire [{int(pr['width']) - 1}:0] {pr['wire']};\n")
-    # do tie-offs that can be overriden later
-    # if len(ports_logics) > 0:
-    #     g.write(f"always @(posedge clk)\n"
-    #             f"begin\n")
-    #     for port, width in ports_logics:
-    #         if port.find('ack') != -1:
-    #             assign = 1
-    #         else:
-    #             assign = 0
-    #
-    #         g.write(f"\t{port} <= {assign};\n")
-    #     g.write(f"end\n")
 
     valid_axi_parts = set()
     # Do AXI4 and OCL concatenations
@@ -549,13 +537,17 @@ def write_encrypt_script_from_base_inline(fname, ):
                 f.write(ln)
 
 
-def reformat_synth_script(fname, oname):
-    with open(fname) as f:
+def create_synth_script(oname):
+    with open(f"{os.environ['COMPOSER_AWS_SDK_DIR']}/hdk/cl/examples/cl_dram_dma/build/scripts/"
+              f"synth_cl_dram_dma.tcl") as f:
         lns = f.readlines()
     with open(oname, 'w') as g:
         for ln in lns:
             if "glob $ENC_SRC" in ln:
                 g.write(f"read_verilog -sv [glob {os.getcwd()}/design/*v]")
+            elif "*.?v" in ln:
+                idx = ln.find("*.?v")
+                g.write(ln[:idx] + "*v" + ln[idx+4:])
             else:
                 g.write(ln)
 
