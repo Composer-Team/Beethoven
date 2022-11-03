@@ -411,7 +411,7 @@ def create_aws_shell():
     # Instantiate SH_DDR module
     # f"sh_ddr #(.DDR_Ax_PRESENT(`DDR_A_PRESENT), .DDR_B_PRESENT(`DDR_B_PRESENT), .DDR_D_PRESENT(`DDR_D_PRESENT))\n"
     g.write(f"// DDR controller instantiation\n"
-            f"sh_ddr #(.DDR_A_PRESENT(0), .DDR_B_PRESENT(0), .DDR_D_PRESENT(0))\n"
+            f"sh_ddr #(.DDR_A_PRESENT(1), .DDR_B_PRESENT(1), .DDR_D_PRESENT(1))\n"
             f"\tSH_DDR(\n"
             f".clk(clk),\n"
             f".rst_n(sync_rst_n),\n"
