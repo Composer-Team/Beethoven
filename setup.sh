@@ -2,7 +2,7 @@
 
 branch=master
 # prefix=https://www.github.com/
-prefix=git@github.com
+prefix=git@github.com:
 
 
 

@@ -1,0 +1,80 @@
+#!/usr/bin/python3
+import os
+import aws_tools
+import sys
+
+cr = os.environ.get("COMPOSER_ROOT")
+if cr is None:
+    print("COMPOSER_ROOT appears to not be defined in your environment. Please define.")
+    exit(1)
+
+opts = {}
+if os.path.exists("composer.cfg") and not "--force" in sys.argv:
+    with open("composer.cfg") as f:
+        for ln in f.readlines():
+            spl = [q.strip() for q in ln.strip().split(" ")]
+            opts.update({spl[0]: spl[1]})
+else:
+    opt = input("'composer.cfg' file not found.\n"
+                "Which backend?\n"
+                "0 - Verilator (Simulation)\n"
+                "1 - AWS FPGA\n").strip()
+    if opt == '0':
+        opt = 'verilator'
+        build_only = False
+    elif opt == '1':
+        opt = 'aws'
+        build_only = input("Build sources only? [y]/n  (Saying no will make composer-config commence build for AWS platform).\n")
+        if build_only.strip() != 'n':
+            build_only = True
+        else:
+            build_only = False
+    else:
+        print("invalid response")
+        exit(1)
+    opts.update({'backend': opt, 'build': build_only})
+    with open("composer.cfg", 'w') as f:
+        f.write(f"backend {opt}\nbuild {build_only}")
+    print("Your choice have been recorded in `composer.cfg`")
+
+if opts['backend'] == 'verilator':
+    os.system(f"cmake {cr}/Composer_Verilator -B verilator -DCMAKE_BUILD_TYPE=Release && make -C verilator")
+elif opts['backend'] == 'aws':
+    aws = os.environ.get("COMPOSER_AWS_SDK_DIR")
+    if aws is None:
+        print("COMPOSER_AWS_SDK_DIR not defined. Please clone aws-fpga and perform necessary setup")
+        exit(1)
+    hdk_dir = os.environ.get("HDK_DIR")
+    if hdk_dir is None:
+        print("HDK_DIR not set. This is usually set as part of aws-fpga setup. Please source hdk_setup.sh in the aws-fpga repo before running this.")
+        hdk_dir = f"{aws}/hdk"
+        os.environ["HDK_DIR"] = hdk_dir
+        if not opts['build']:
+            exit(1)
+    aws_tools.create_aws_shell()
+
+    path = f"{hdk_dir}/common/shell_stable/new_cl_template/"
+    os.system(f"cp -rL {path}/build . && mkdir -p design && mv composer_aws.sv design/ &&"
+              f" cp generated-src/composer.v design/")
+
+    aws_tools.write_encrypt_script_from_base_inline("build/scripts/encrypt.tcl")
+    os.system("mkdir -p build/checkpoints && mkdir -p build/reports")
+
+    aws_tools.create_synth_script("build/scripts/synth_composer_aws.tcl")
+
+    tcl_name = "build/scripts/synth_composer_aws.tcl"
+
+    aws_tools.create_dcp_script_inline("build/scripts/create_dcp_from_cl.tcl")
+
+    if not opts['build']:
+        dvdir = f"{aws}/hdk/cl/developer_designs/composer/"
+        os.system(f"mkdir {dvdir}")
+        os.system(f"rm -rf {dvdir}/build {dvdir}/design &&"
+                  f"cp -r build {dvdir}/ && cp -r design {dvdir}/ && export EMAIL=chriskjellqvist@gmail.com &&"
+                  f"export CL_DIR={dvdir} && "
+                  f"cd {dvdir}/build/scripts/ && ./aws_build_dcp_from_cl.sh -notify")
+    else:
+        print("Not building! If you plan to build manually make sure to set $CL_DIR")
+else:
+    print("operation not recognized")
+
