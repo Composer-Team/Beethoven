@@ -1,0 +1,34 @@
+Index: sdk/userspace/include/fpga_dma.h
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/sdk/userspace/include/fpga_dma.h b/sdk/userspace/include/fpga_dma.h
+--- a/sdk/userspace/include/fpga_dma.h	(revision 2a36c4d76b68bb9c60bf2f7b0be0fd9ea134978e)
++++ b/sdk/userspace/include/fpga_dma.h	(date 1668357714535)
+@@ -70,7 +70,7 @@
+  */
+ int fpga_dma_device_id(enum fpga_dma_driver which_driver, int slot_id,
+     int channel, bool is_read,
+-    char device_file[static FPGA_DEVICE_FILE_NAME_MAX_LEN]);
++    char device_file[]);
+ 
+ /**
+  * Use this function to copy an entire buffer from the FPGA into a buffer in
+Index: sdk/userspace/fpga_libs/fpga_dma/fpga_dma_utils.c
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/sdk/userspace/fpga_libs/fpga_dma/fpga_dma_utils.c b/sdk/userspace/fpga_libs/fpga_dma/fpga_dma_utils.c
+--- a/sdk/userspace/fpga_libs/fpga_dma/fpga_dma_utils.c	(revision 2a36c4d76b68bb9c60bf2f7b0be0fd9ea134978e)
++++ b/sdk/userspace/fpga_libs/fpga_dma/fpga_dma_utils.c	(date 1668357714531)
+@@ -88,7 +88,7 @@
+ 
+ int fpga_dma_device_id(enum fpga_dma_driver which_driver, int slot_id,
+     int channel, bool is_read,
+-    char device_file[static FPGA_DEVICE_FILE_NAME_MAX_LEN])
++    char device_file[])
+ {
+     int rc = 0;
+     int device_num;
