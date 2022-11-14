@@ -1,18 +1,5 @@
 import os
 
-"""
-ERROR: [Synth 8-2715] syntax error near . [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:678]
-ERROR: [Synth 8-2841] use of undefined macro CL_VERSION [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:750]
-ERROR: [Synth 8-2715] syntax error near ; [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:750]
-ERROR: [Synth 8-1031] stat_clk is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:477]
-ERROR: [Synth 8-1031] stat_rst_n is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:479]
-ERROR: [Synth 8-1031] cl_sh_ddr_awuser is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:817]
-ERROR: [Synth 8-1031] cl_sh_ddr_awuser is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:818]
-ERROR: [Synth 8-1031] cl_sh_ddr_awuser is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:819]
-ERROR: [Synth 8-1031] cl_sh_ddr_aruser is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:823]
-ERROR: [Synth 8-1031] cl_sh_ddr_aruser is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:824]
-ERROR: [Synth 8-1031] cl_sh_ddr_aruser is not declared [/home/centos/Composer/Composer-Hardware/vsim/design/composer_aws.sv:825]
-"""
 
 def is_number(q):
     # noinspection PyBroadException
@@ -24,7 +11,7 @@ def is_number(q):
 
 
 def scrape_aws_ports():
-    with open(f"{os.environ['COMPOSER_AWS_SDK_DIR']}/hdk/common/shell_stable/design/interfaces/cl_ports.vh") as f:
+    with open(f"{os.environ['COMPOSER_ROOT']}/aws-sdk/hdk/common/shell_stable/design/interfaces/cl_ports.vh") as f:
         inputs = []
         outputs = []
         output_logics = []
@@ -124,7 +111,7 @@ def scrape_cl_ports():
 def scrape_sh_ddr_ports():
     sh_ddr_in = []
     sh_ddr_out = []
-    with open(f"{os.environ['COMPOSER_AWS_SDK_DIR']}/hdk/common/shell_stable/design/sh_ddr/sim/sh_ddr.sv") as f:
+    with open(f"{os.environ['COMPOSER_ROOT']}/aws-fpga/hdk/common/shell_stable/design/sh_ddr/sim/sh_ddr.sv") as f:
         lns = f.readlines()
         for ln in lns:
             if '//' in ln:
@@ -541,7 +528,7 @@ def write_encrypt_script_from_base_inline(fname, ):
 
 
 def create_synth_script(oname):
-    with open(f"{os.environ['COMPOSER_AWS_SDK_DIR']}/hdk/cl/examples/cl_dram_dma/build/scripts/"
+    with open(f"{os.environ['COMPOSER_ROOT']}/aws-fpga/hdk/cl/examples/cl_dram_dma/build/scripts/"
               f"synth_cl_dram_dma.tcl") as f:
         lns = f.readlines()
     with open(oname, 'w') as g:
