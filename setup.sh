@@ -22,6 +22,9 @@ for i in "$@"; do
 	    ls /dev/xdma
 	    echo "If there's nothing printed out above, try restarting the F1 instance."
 	    ;;
+	  -awsclone)
+	    git clone https://github.com/aws/aws-fpga.git
+	    ;;
 		-help)
 			echo "-b=<git branch name>\n\tGit branch of repositories to grab. Default is master. Usual alternative is dev\n-yaml\n\tInstall yaml-cpp prerequisite locally"
 			shift
