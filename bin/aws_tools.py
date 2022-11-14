@@ -11,7 +11,7 @@ def is_number(q):
 
 
 def scrape_aws_ports():
-    with open(f"{os.environ['COMPOSER_ROOT']}/aws-sdk/hdk/common/shell_stable/design/interfaces/cl_ports.vh") as f:
+    with open(f"{os.environ['COMPOSER_ROOT']}/aws-fpga/hdk/common/shell_stable/design/interfaces/cl_ports.vh") as f:
         inputs = []
         outputs = []
         output_logics = []
