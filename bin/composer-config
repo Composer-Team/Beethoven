@@ -69,7 +69,7 @@ elif opts['backend'] == 'aws' or opts['backend'] == 'vsim':
     if opts['backend'] == 'vsim':
         assert 0 == os.system(f"cmake {cr}/Composer_Verilator -DTARGET=vsim -DCMAKE_BUILD_TYPE=Debug . && make")
         os.system('mkdir -p software/runtime && mkdir -p verif && cp libComposer_Verilator.a software/runtime/ &&'
-                  f'cp -r {aws}/hdk/cl/examples/verif/scripts verif/')
+                  f'cp -r {aws}/hdk/cl/examples/cl_hello_world/verif/scripts verif/')
         vsim_tools.modify_vsim_makefile_in_place("verif/scripts/Makefile")
 
 else:
