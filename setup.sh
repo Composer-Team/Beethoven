@@ -10,7 +10,17 @@ for i in "$@"; do
 	case $i in
 	  -aws)
 	    git clone https://github.com/aws/aws-fpga.git
-	    cd aws-fpga && git apply ../bin/aws-setup.patch &> /dev/null; cd ..
+	    cd aws-fpga || exit
+	    sudo yum groupinstall "Development tools"
+	    sudo yum install kernel kernel-devel
+	    sudo systemctl stop mpd || true
+	    sudo yum remove -y xrt xrt-aws || true
+	    source sdk_setup.sh
+	    cd sdk/linux_kernel_drivers/xdma || exit
+	    make && sudo make install
+	    echo "If the kernel module is running (and working), you should see some files below:"
+	    ls /dev/xdma
+	    echo "If there's nothing printed out above, try restarting the F1 instance."
 	    ;;
 		-help)
 			echo "-b=<git branch name>\n\tGit branch of repositories to grab. Default is master. Usual alternative is dev\n-yaml\n\tInstall yaml-cpp prerequisite locally"

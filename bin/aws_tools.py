@@ -515,10 +515,13 @@ def create_aws_shell():
     g.close()
 
 
-def write_encrypt_script_from_base_inline(fname, ):
+def write_id_defines():
     with open("design/cl_id_defines.vh", 'w') as f:
-        f.write("`define CL_SH_ID0 32'hF002_1D0F\n"
+        f.write("`define CL_SH_ID0 32'hF001_1D0F\n"
                 "`define CL_SH_ID1 32'h1D51_FEDC\n")
+
+
+def write_encrypt_script_from_base_inline(fname, ):
     with open(fname) as f:
         lns = f.readlines()
     to_write = ["file copy -force $CL_DIR/design/composer_aws.sv $TARGET_DIR\n",
