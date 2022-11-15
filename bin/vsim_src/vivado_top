@@ -39,8 +39,6 @@
 --include ${HDK_SHELL_DESIGN_DIR}/ip/cl_axi_interconnect/ipshared/7e3a/hdl
 --include ${HDK_SHELL_DESIGN_DIR}/sh_ddr/sim
 
--f ${HDK_COMMON_DIR}/verif/tb/filelists/tb.${SIMULATOR}.f
-${TEST_NAME}
 
 ${CL_ROOT}/design/cl_id_defines.vh
 ${HDK_SHELL_DESIGN_DIR}/ip/axi_clock_converter_0/sim/axi_clock_converter_0.v
@@ -86,4 +84,6 @@ ${HDK_SHELL_DESIGN_DIR}/sh_ddr/sim/sh_ddr.sv
 ${CL_ROOT}/design/composer.v
 ${CL_ROOT}/design/composer_aws.sv
 
+-f ${HDK_COMMON_DIR}/verif/tb/filelists/tb.${SIMULATOR}.f
+${TEST_NAME}
 
