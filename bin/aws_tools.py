@@ -401,7 +401,7 @@ def create_aws_shell():
             f"sh_ddr #(.DDR_A_PRESENT(1), .DDR_B_PRESENT(1), .DDR_D_PRESENT(1))\n"
             f"\tSH_DDR(\n"
             f".clk(clk),\n"
-            f".rst_n(sync_rst_n),\n"
+            f".rst_n(!rst_main_n),\n"
             f".stat_clk(clk),\n"
             f".stat_rst_n(sync_rst_n)")
     # write signals that go straight to shell (DDR pins)
