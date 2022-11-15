@@ -71,7 +71,8 @@ elif opts['backend'] == 'aws' or opts['backend'] == 'vsim':
         pwd = os.getcwd()
         os.system(f'mkdir -p software/runtime && mkdir -p verif && '
                   f'cp {os.environ["COMPOSER_ROOT"]}/bin/vivado_test.c software/runtime && '
-                  f'cp -r {aws}/hdk/cl/examples/cl_hello_world/verif/scripts verif/')
+                  f'cp -r {aws}/hdk/cl/examples/cl_hello_world/verif/scripts verif/ && '
+                  f'cp -r {os.environ["COMPOSER_ROOT"]}/bin/vsim_src/vivado_top verif/scripts/top.vivado.f')
         vsim_tools.modify_vsim_makefile_in_place("verif/scripts/Makefile")
 
 else:
