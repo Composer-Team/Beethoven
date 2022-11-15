@@ -504,7 +504,8 @@ def create_aws_shell():
 
 def write_id_defines():
     with open("design/cl_id_defines.vh", 'w') as f:
-        f.write("`define CL_SH_ID0 32'hF001_1D0F\n"
+        f.write("`define CL_NAME composer_aws\n"
+                "`define CL_SH_ID0 32'hF001_1D0F\n"
                 "`define CL_SH_ID1 32'h1D51_FEDC\n")
 
 
