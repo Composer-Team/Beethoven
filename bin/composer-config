@@ -76,9 +76,7 @@ elif opts['backend'] == 'aws' or opts['backend'] == 'vsim':
                   f'cp {hlw}/Makefile verif/scripts && '
                   f'cp {vss}/vivado_top verif/scripts/top.vivado.f && '
                   f'cp {hlw}/Makefile.vivado verif/scripts/ &&'
-                  f'cp {hlw}/waves.tcl verif/scripts/ && '
-                  f'mkdir -p verif/sim/vivado/vivado_test_c/xsim.dir/work/xsc && '
-                  f'cp libComposer_Verilator.a verif/sim/vivado/vivado_test_c/xsim.dir/work/xsc/libComposer_Verilator.o && '
+                  f'cp {vss}/waves.tcl verif/scripts/ && '
                   f'mkdir -p verif/tests && '
                   f'cp -r {vss}/test_null.sv verif/tests/')
         vsim_tools.modify_vsim_makefile_in_place("verif/scripts/Makefile")
