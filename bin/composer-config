@@ -68,7 +68,9 @@ elif opts['backend'] == 'aws' or opts['backend'] == 'vsim':
     aws_tools.create_dcp_script_inline("build/scripts/create_dcp_from_cl.tcl")
     if opts['backend'] == 'vsim':
         assert 0 == os.system(f"cmake {cr}/Composer_Verilator -DTARGET=vsim -DCMAKE_BUILD_TYPE=Debug . && make")
-        os.system('mkdir -p software/runtime && mkdir -p verif && cp libComposer_Verilator.a software/runtime/ &&'
+        pwd = os.getcwd()
+        os.system(f'mkdir -p software/runtime && mkdir -p verif && '
+                  f'cp {os.environ["COMPOSER_ROOT"]}/bin/vivado_test.c software/runtime && '
                   f'cp -r {aws}/hdk/cl/examples/cl_hello_world/verif/scripts verif/')
         vsim_tools.modify_vsim_makefile_in_place("verif/scripts/Makefile")
 
