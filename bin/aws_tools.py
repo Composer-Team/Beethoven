@@ -232,6 +232,8 @@ def create_aws_shell():
         f");\n"
         f"logic pre_sync_rst_n;\n"
         f"logic sync_rst_n;\n"
+        f"logic clk;\n"
+        f"assign clk = clk_main_a0;\n"
         f"always_ff @(negedge rst_main_n or posedge clk)\n"
         f"\tif (!rst_main_n)\n"
         f"\tbegin\n"
@@ -401,7 +403,7 @@ def create_aws_shell():
             f"sh_ddr #(.DDR_A_PRESENT(1), .DDR_B_PRESENT(1), .DDR_D_PRESENT(1))\n"
             f"\tSH_DDR(\n"
             f".clk(clk),\n"
-            f".rst_n(!rst_main_n),\n"
+            f".rst_n(sync_rst_n),\n"
             f".stat_clk(clk),\n"
             f".stat_rst_n(sync_rst_n)")
     # write signals that go straight to shell (DDR pins)
