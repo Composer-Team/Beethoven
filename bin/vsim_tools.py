@@ -10,6 +10,6 @@ def modify_vsim_makefile_in_place(fname):
                 find_string = "$(C_TEST_NAME)"
                 b = ln.find(find_string)
                 assert b != -1
-                f.write(ln[:b] + "vivado_test.c " + ln[b + len(find_string):])
+                f.write(ln[:b] + "$(C_SRC_DIR)/vivado_test.c " + ln[b + len(find_string):])
             else:
                 f.write(ln)
