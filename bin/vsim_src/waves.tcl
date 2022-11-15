@@ -14,6 +14,7 @@
 # limitations under the License.
 
 set curr_wave [current_wave_config]
+add_wave -recursive /
 if { [string length $curr_wave] == 0 } {
   if { [llength [get_objects]] > 0} {
     add_wave -recursive /
