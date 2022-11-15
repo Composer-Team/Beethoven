@@ -271,7 +271,8 @@ def create_aws_shell():
         if k[:3] == 'ocl':
             def search_for_ocl_part(part, part_list):
                 for pname, pwidth in part_list:
-                    if 'ocl' in pname and part in pname:
+                    if 'ocl' in pname and "_" + part in pname:
+                        print(f"{part} matches in {pname}")
                         return pname, int(pwidth)
                 return None, None
             pname, pwidth = search_for_ocl_part(partname, ports_in)
