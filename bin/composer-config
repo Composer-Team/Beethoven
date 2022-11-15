@@ -69,8 +69,8 @@ elif opts['backend'] == 'aws' or opts['backend'] == 'vsim':
     if opts['backend'] == 'vsim':
         assert 0 == os.system(f"cmake {cr}/Composer_Verilator -DTARGET=vsim -DCMAKE_BUILD_TYPE=Debug . && make")
         pwd = os.getcwd()
-        vss = os.environ["COMPOSER_ROOT"] + "/bin/vsim_src"
-        hlw = os.environ["COMPOSER_ROOT"] + "/hdk/cl/examples/cl_hello_world/verif/scripts"
+        vss = os.environ["COMPOSER_ROOT"] + "/aws-fpga/bin/vsim_src"
+        hlw = os.environ["COMPOSER_ROOT"] + "/aws-fpga/hdk/cl/examples/cl_hello_world/verif/scripts"
         os.system(f'mkdir -p software/runtime && mkdir -p verif/scripts && '
                   f'cp {vss}/vivado_test.c software/runtime && '
                   f'cp {hlw}/Makefile verif/scripts && '
