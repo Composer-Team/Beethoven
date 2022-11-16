@@ -232,6 +232,7 @@ def create_aws_shell():
         f");\n"
         f"logic pre_sync_rst_n;\n"
         f"logic sync_rst_n;\n"
+        f"logic active_high_rst;\n"
         f"logic clk;\n"
         f"assign clk = clk_main_a0;\n"
         f"always_ff @(negedge rst_main_n or posedge clk)\n"
@@ -239,11 +240,13 @@ def create_aws_shell():
         f"\tbegin\n"
         f"\t\tpre_sync_rst_n <= 0;\n"
         f"\t\tsync_rst_n <= 0;\n"
+        f"\t\tactive_high_rst <= 1;\n"
         f"\tend\n"
         f"\telse\n"
         f"\tbegin\n"
         f"\t\tpre_sync_rst_n <= 1;\n"
-        f"\t\tsync_rst_n <= pre_sync_rst_n;\n"
+        f"\t\tsync_rst_n <= pre_sync_rst_n;"
+        f"\t\tactive_high_rst <= 0;\n"
         f"\tend\n")
     concats = {}
 
@@ -389,7 +392,7 @@ def create_aws_shell():
     # Instantiate actual ComposerTop module
     g.write("ComposerTop myTop(\n"
             "\t.clock(clk),\n"
-            "\t.reset(sync_rst_n),\n")
+            "\t.reset(active_high_rst),\n")
     for i, pr in enumerate(cl_io):
         g.write(f"\t.{pr['name']}({pr['wire']})")
         if i == len(cl_io) - 1:
