@@ -364,8 +364,11 @@ def create_aws_shell():
                     g.write(f"assign {k}[{i}] = {ele};\n")
                 else:
                     g.write(f"assign {k}[{i}] = " + "{" + f"{pwidth-int(width)}'b0, {ele}" + "};\n")
-            for i in range(4 - len(lst)):
-                g.write(f"assign {k}[{3 - i}] = {pwidth}'b0;\n")
+
+            n_missing = 4-len(lst)
+            if n_missing > 0:
+                for i in range(n_missing + 1):
+                    g.write(f"assign {k}[{2 - i}] = {pwidth}'b0;\n")
 
         else:
             print("GOT A WEIRD KEY: " + str(k))
