@@ -245,7 +245,7 @@ def create_aws_shell():
         f"\telse\n"
         f"\tbegin\n"
         f"\t\tpre_sync_rst_n <= 1;\n"
-        f"\t\tsync_rst_n <= pre_sync_rst_n;"
+        f"\t\tsync_rst_n <= pre_sync_rst_n;\n"
         f"\t\tactive_high_rst <= 0;\n"
         f"\tend\n")
     concats = {}
