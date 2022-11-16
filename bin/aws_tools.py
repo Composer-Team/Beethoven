@@ -366,8 +366,8 @@ def create_aws_shell():
                     g.write(f"assign {k}[{i}] = " + "{" + f"{pwidth-int(width)}'b0, {ele}" + "};\n")
 
             n_missing = 4-len(lst)
-            if n_missing > 0:
-                for i in range(n_missing + 1):
+            if n_missing > 1:
+                for i in range(n_missing):
                     g.write(f"assign {k}[{2 - i}] = {pwidth}'b0;\n")
 
         else:
