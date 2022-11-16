@@ -170,6 +170,21 @@ def scrape_sh_ddr_ports():
     exit(1)
 
 
+def get_num_ddr_channels():
+    with open(f"{os.environ['COMPOSER_ROOT']}/Composer-Hardware/vsim/generated-src/composer_allocator_declaration.h") as f:
+        lns = f.readlines()
+        for ln in lns:
+            if "NUM_DDR_CHANNELS" in ln:
+                return int(ln.strip().split()[-1])
+        return -1
+
+
+def bool_to_int(b):
+    if b:
+        return 1
+    return 0
+
+
 def create_aws_shell():
     # Get io_in and io_out ports for shell so that we can initialize them all to tied off values.
     ports_in, ports_out, ports_logics = scrape_aws_ports()
@@ -192,11 +207,7 @@ def create_aws_shell():
         g.write(f"wire {width_str}{nstr}{ar_str};\n")
 
     # How many AXI4-Mem interfaces did we intialize Composer with?
-    if len(dram_io) == 0:
-        ndram = 0
-    else:
-        ndram = max(map(lambda x: int(x['name'].split('_')[2]), dram_io)) + 1
-
+    ndram = get_num_ddr_channels()
     assert len(axil_io) > 0
 
     ddr_in, ddr_out = scrape_sh_ddr_ports()
@@ -299,10 +310,9 @@ def create_aws_shell():
                     print(f"This happened 3 :( {pname} {partname} {width} {pwidth}")
                 g.write(f"assign {pname} = {lst[0]};\n")
         elif k[:4] == 'axi4':
-            found = False
             # deal with DDR_C first to scrape out_port width
-            is_out = -1
             valid_axi_parts.add(partname)
+
             def search_for_part(part, part_list):
                 for pname, pwidth in part_list:
                     if pname.find("ddr_" + part) != -1:
@@ -400,11 +410,11 @@ def create_aws_shell():
         else:
             g.write(",\n")
     g.write(');\n')
-    # CHRIS TODO array is array, even with 1-width wires
     # Instantiate SH_DDR module
-    # f"sh_ddr #(.DDR_Ax_PRESENT(`DDR_A_PRESENT), .DDR_B_PRESENT(`DDR_B_PRESENT), .DDR_D_PRESENT(`DDR_D_PRESENT))\n"
     g.write(f"// DDR controller instantiation\n"
-            f"sh_ddr #(.DDR_A_PRESENT(1), .DDR_B_PRESENT(1), .DDR_D_PRESENT(1))\n"
+            f"sh_ddr #(.DDR_A_PRESENT({bool_to_int(ndram > 1)}),"
+            f" .DDR_B_PRESENT({bool_to_int(ndram > 2)}),"
+            f" .DDR_D_PRESENT({bool_to_int(ndram > 3)}))\n"
             f"\tSH_DDR(\n"
             f".clk(clk),\n"
             f".rst_n(sync_rst_n),\n"
