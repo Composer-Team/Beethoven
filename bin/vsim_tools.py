@@ -1,7 +1,7 @@
 import os
 
 
-def modify_vsim_makefile_in_place(fname, sanity):
+def modify_vsim_makefile_in_place(fname):
     with open(fname) as f:
         lns = f.readlines()
     with open(fname, 'w') as f:
@@ -10,10 +10,7 @@ def modify_vsim_makefile_in_place(fname, sanity):
                 find_string = "$(C_TEST_NAME)"
                 b = ln.find(find_string)
                 assert b != -1
-                if sanity:
-                    f.write(ln[:b] + ln[b + len(find_string):])
-                else:
-                    f.write(ln[:b] + "$(C_SRC_DIR)/vivado_test.c " + ln[b + len(find_string):])
+                f.write(ln[:b] + "$(C_SRC_DIR)/vivado_test.c " + ln[b + len(find_string):])
             elif "C_TEST ?=" in ln:
                 f.write("export C_TEST ?= vivado_test\n")
             else:
