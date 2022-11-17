@@ -41,7 +41,7 @@ else:
 
 if opts['backend'] == 'verilator':
     os.system(f"cmake {cr}/Composer_Verilator -DTARGET=sim -DCMAKE_BUILD_TYPE={opts['build_type']}")
-elif opts['backend'] == 'aws' or opts['backend'] == 'vsim':
+elif opts['backend'] == 'aws' or opts['backend'] == 'vsim' or opts['backend'] == 'sanity':
     aws = os.environ.get("COMPOSER_ROOT") + "/aws-fpga"
     hdk_dir = os.environ.get("HDK_DIR")
     if hdk_dir is None:
@@ -64,8 +64,8 @@ elif opts['backend'] == 'aws' or opts['backend'] == 'vsim':
     tcl_name = "build/scripts/synth_composer_aws.tcl"
 
     aws_tools.create_dcp_script_inline("build/scripts/create_dcp_from_cl.tcl")
-    if opts['backend'] == 'vsim':
-        assert 0 == os.system(f"cmake {cr}/Composer_Verilator -DTARGET=vsim -DCMAKE_BUILD_TYPE=Debug . && make")
+    if opts['backend'] == 'vsim' or opts['backend'] == 'sanity':
+        assert 0 == os.system(f"cmake {cr}/Composer_Verilator -DTARGET={opts['backend']} && make")
         pwd = os.getcwd()
         vss = os.environ["COMPOSER_ROOT"] + "/bin/vsim_src"
         hlw = os.environ["COMPOSER_ROOT"] + "/aws-fpga/hdk/cl/examples/cl_hello_world/verif/scripts"
