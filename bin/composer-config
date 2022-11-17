@@ -81,7 +81,7 @@ elif opts['backend'] == 'aws' or opts['backend'] == 'vsim' or opts['backend'] ==
                   f'mkdir -p verif/tests && '
                   f'cp -r {vss}/test_null.sv verif/tests/')
         if opts['backend'] == 'vsim':
-            vsim_tools.modify_vsim_makefile_in_place("verif/scripts/Makefile")
+            vsim_tools.modify_vsim_makefile_in_place("verif/scripts/Makefile", opts['backend'] == 'sanity')
     else:
         assert 0 == os.system(f"mkdir -p server && cd server && cmake {cr}/Composer_Verilator -DTARGET=fpga -DCMAKE_BUILD_TYPE=Debug && make && cd ..")
 
