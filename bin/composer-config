@@ -20,7 +20,8 @@ else:
                 "Which backend?\n"
                 "0 - Verilator (Simulation)\n"
                 "1 - AWS FPGA\n"
-                "2 - XSIM (Simulation of AWS Shell using Xilinx Vivado XSIM) - SLOW!\n").strip()
+                "2 - XSIM (Simulation of AWS Shell using Xilinx Vivado XSIM) - SLOW!\n"
+                "3 - sanity\n").strip()
     if opt == '0':
         opt = 'verilator'
         build_type = input("[Debug]/Release?\n")
@@ -32,6 +33,8 @@ else:
         opt = 'aws'
     elif opt == '2':
         opt = 'vsim'
+    elif opt == '3':
+        opt = 'sanity'
     else:
         raise Exception("Invalid response")
     opts.update({'backend': opt})
