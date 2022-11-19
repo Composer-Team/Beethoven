@@ -410,8 +410,8 @@ def create_aws_shell():
         if ndram >= 1:
             creadys.append(search_for_part("is_ready", "ddr_", shell_ports)[0])
         if ndram > 1:
-            rp = search_for_part("is_ready", "ddr_", ddr_ios)
-            creadys += rp[:ndram-1]
+            rp = search_for_part("is_ready", "ddr_", ddr_ios)[0]
+            creadys += [rp.get_array_subwire(i) for i in range(ndram-1)]
 
         for cr in creadys[1:]:
             creadys[0] = creadys[0] & cr
