@@ -122,36 +122,45 @@ def scrape_ports_from_lines(lns):
     ports = []
     lns_fresh = map(lambda x: x.strip().replace(',', '').replace('wire', ''), lns)
     lns_filt = []
-    skip = 0
-    skip2 = 0
+    filter_stack = []
+
+    def can_consume():
+        return '/*' not in filter_stack and '`ifdef' not in filter_stack
+
     for ln in lns_fresh:
+        print(ln)
+        found_comment = False
         if '/*' in ln:
-            skip2 = 1
-            continue
+            filter_stack.append('/*')
+            ln = ln[ln.find('/*')+2:]
+            found_comment = True
         if '*/' in ln:
-            skip2 = 0
-            continue
-        if skip2:
+            assert filter_stack[-1] == '/*'
+            filter_stack = filter_stack[:-1]
+            found_comment = False
+        if found_comment:
             continue
         if '`ifdef' in ln:
-            skip += 1
-            continue
-        if '`ifndef' in ln and skip > 0:
-            skip += 1
+            filter_stack.append('`ifdef')
             continue
         if '`ifndef' in ln:
+            filter_stack.append('`ifndef')
             continue
         if '`endif' in ln:
-            skip -= 1
-            skip = max(0, skip)
+            assert filter_stack[-1] == '`ifndef' or filter_stack[-1] == '`ifdef'
+            filter_stack = filter_stack[:-1]
             continue
         # TODO maybe scrape the defines for use later...
         if '`define' in ln:
             continue
-        if skip > 0:
+
+        if not can_consume():
+            print(f"skipping {ln}")
             continue
+        if ");" in ln:
+            print("ending reading, found " + ln)
+            break
         lns_filt.append(ln)
-        assert skip >= 0
 
     for ln in lns_filt:
         lncopy = ln
@@ -530,7 +539,7 @@ def create_aws_shell():
             f".clk(clk),\n"
             f".rst_n(sync_rst_n),\n"
             f".stat_clk(clk),\n"
-            f".stat_rst_n(sync_rst_n)")
+            f".stat_rst_n(sync_rst_n),\n")
     # Now we add DDR ports
     for port in ddr_ios:
         if port.name[:2] == 'M_' or 'CLK' in port.name or 'RST' in port.name:
