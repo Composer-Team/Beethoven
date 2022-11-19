@@ -139,24 +139,29 @@ def scrape_ports_from_lines(lns):
             filter_stack.append('/*')
             ln = ln[ln.find('/*')+2:]
             found_comment = True
+            print('d')
         if '*/' in ln:
             assert filter_stack[-1] == '/*'
             filter_stack = filter_stack[:-1]
             found_comment = False
+            print('e')
         if found_comment:
             continue
         if '`ifdef' in ln:
             filter_stack.append('`ifdef')
+            print('c')
             continue
         if '`ifndef' in ln:
             filter_stack.append('`ifndef')
+            print('b')
             continue
         if '`endif' in ln:
             assert filter_stack[-1] == '`ifndef' or filter_stack[-1] == '`ifdef'
             filter_stack = filter_stack[:-1]
+            print('a')
             continue
-        # TODO maybe scrape the defines for use later...
         if '`define' in ln:
+            print("found define")
             continue
 
         if not can_consume():
@@ -166,7 +171,9 @@ def scrape_ports_from_lines(lns):
             print("ending reading, found " + ln)
             break
         lns_filt.append(ln)
+        pass
 
+    print('')
     for ln in lns_filt:
         lncopy = ln
         if 'NUM_GTY' in ln:
@@ -236,7 +243,7 @@ def scrape_ports_from_lines(lns):
         # if 'bits_' in name:
         #     name = name[:name.find('bits_')] + name[name.find('bits_') + 5:]
 
-        if 'rst' in name or 'reset' in name or 'clk' in name or 'clock' in name:
+        if 'rst_' in name or 'reset' in name or 'clk' in name or 'clock' in name:
             continue
         ports.append(VerilogPort(name, width, ar_width, io_ty, is_logic))
     return ports
@@ -249,9 +256,7 @@ def scrape_aws_ports():
 
 def scrape_cl_ports():
     ct = open(f"{os.environ.get('COMPOSER_ROOT')}/Composer-Hardware/vsim/generated-src/composer.v")
-    ct_io = []
     lns = []
-    wire_id = 0
     state = 0
     for ln in ct.readlines():
         if state == 0:
@@ -352,6 +357,9 @@ def create_aws_shell():
     ddr_ios: List[VerilogPort] = scrape_sh_ddr_ports()
     cl_ios: List[VerilogPort] = scrape_cl_ports()
     shell_ports: List[VerilogPort] = scrape_aws_ports()
+
+    for pr in cl_ios:
+        print(f"name: {pr.name}")
 
     to_tie = []
 
