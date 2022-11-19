@@ -601,7 +601,7 @@ def create_aws_shell():
                 f".M_{letter}_ECC(M_{letter}_ECC),\n"
                 f".M_{letter}_DQS_DP(M_{letter}_DQS_DP),\n"
                 f".M_{letter}_DQS_DN(M_{letter}_DQS_DN),\n"
-                f".cl_RST_DIMM_{letter}_N(RST_DIMM_{letter}_N)")
+                f".RST_DIMM_{letter}_N(RST_DIMM_{letter}_N)")
     g.write(");\n")
     list(filter(lambda x: x.name == 'cl_sh_id0', shell_ports))[0].assign_constant(g, "`CL_SH_ID0")
     list(filter(lambda x: x.name == 'cl_sh_id1', shell_ports))[0].assign_constant(g, "`CL_SH_ID1")
