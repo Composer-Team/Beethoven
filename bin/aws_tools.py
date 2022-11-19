@@ -10,59 +10,224 @@ def is_number(q):
     return True
 
 
+def extract(s, p):
+    assert p in s
+    idx = s.find(p)
+    return s[:idx] + s[idx + len(p):]
+
+
+class Wire:
+    def __init__(self, name, width, ar_width):
+        self.name = name
+        self.width = width
+        self.ar_width = ar_width
+        self.occupancy = 0
+        self.assignment = []
+
+    def __hash__(self):
+        return self.name.__hash__()
+
+    def assign(self, g, operand):
+        assert self.occupancy < self.ar_width
+        assert operand.ar_width == 1
+        self.assignment.append(operand)
+        assert self.ar_width == 1
+        op1 = self.name
+        # Dont' overassign
+        if operand.width < self.width:
+            op2 = '{' + f"{self.width - operand.width}'b0, {operand.name}" + "}"
+        elif self.width < operand.width:
+            op2 = f"{operand.name}[{self.width - 1}:0]"
+        else:
+            op2 = operand.name
+
+        g.write(f"assign {op1} = {op2};\n")
+        self.occupancy += 1
+
+    def assign_array(self, g, op):
+        g.write(f"assign {self.name} = {op.name};\n")
+
+    def get_array_subwire(self, i):
+        if self.ar_width > 1:
+            return Wire(f"{self.name}[{i}]", self.width, 1)
+        else:
+            return Wire(f"{self.name}[{i}]", 1, 1)
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def is_ddr_pin(self):
+        return 'sh_cl' in self.name or 'cl_sh' in self.name
+
+    def tie_off(self, g, special_val="0"):
+        g.write(f"assign {self.name} = ")
+        tieoff = "0"
+        if special_val == '1':
+            tieoff = '1' * self.width
+        if self.ar_width == 1:
+            g.write(f"{self.width}'b{tieoff};\n")
+        else:
+            g.write("'{")
+            for i in range(self.ar_width):
+                g.write(f"{self.width}'b{tieoff}, ")
+            g.write("};\n")
+
+
+class VerilogPort(Wire):
+    def __init__(self, name: str, width: int, ar_len: int, io_type: str, is_logic: bool):
+        super().__init__(name, width, ar_width=ar_len)
+        self.input = io_type == 'input'
+        self.output = io_type == 'output'
+        self.inout = io_type == 'inout'
+        self.logic = is_logic
+        assert self.input or self.output or self.inout
+
+    def get_group_name(self):
+        if not '_' in self.name:
+            return None
+        else:
+            return self.name[:self.name.find('_')]
+
+    def get_axi_part_name(self):
+        if self.is_ddr_pin():
+            return self.name.split('_')[-1]
+        else:
+            spl = self.name.split('_')
+            return spl[-2] + spl[-1]
+
+    def is_stat(self):
+        return 'ddr' in self.name and 'stat' in self.name
+
+    def get_stat_name(self):
+        return self.name.split('_')[-1]
+
+    def __hash__(self):
+        return self.name.__hash__()
+
+    def assign(self, g, operand):
+        assert self.output
+        super().assign(g, operand)
+
+    def assign_constant(self, g, val_str):
+        assert self.output
+        super().assign(g, Wire(val_str, self.width, self.ar_width))
+
+
+def scrape_ports_from_lines(lns):
+    ports = []
+    lns_fresh = map(lambda x: x.strip().replace(',', '').replace('wire', ''), lns)
+    lns_filt = []
+    skip = 0
+    skip2 = 0
+    for ln in lns_fresh:
+        if '/*' in ln:
+            skip2 = 1
+            continue
+        if '*/' in ln:
+            skip2 = 0
+            continue
+        if skip2:
+            continue
+        if '`ifdef' in ln:
+            skip += 1
+            continue
+        if '`ifndef' in ln and skip > 0:
+            skip += 1
+            continue
+        if '`ifndef' in ln:
+            continue
+        if '`endif' in ln:
+            skip -= 1
+            skip = max(0, skip)
+            continue
+        # TODO maybe scrape the defines for use later...
+        if '`define' in ln:
+            continue
+        lns_filt.append(ln)
+        assert skip >= 0
+
+    for ln in lns_filt:
+        lncopy = ln
+        # remove everything after comments
+        if '//' in ln:
+            ln = ln[:ln.find('//')].strip()
+        # if it's empty, remove now
+        if ln == '':
+            continue
+        if ");" in ln:
+            return ports
+        if 'input' in ln:
+            io_ty = 'input'
+            ln = extract(ln, 'input')
+        elif 'output' in ln:
+            io_ty = 'output'
+            ln = extract(ln, 'output')
+        elif 'inout' in ln:
+            io_ty = 'inout'
+            ln = extract(ln, 'inout')
+        else:
+            raise Exception("Unrecognized port type in " + ln)
+
+        is_logic = 'logic' in ln
+        if is_logic:
+            ln = extract(ln, 'logic')
+
+        name_str = str(ln.replace('input', '').replace('output', '').strip())
+        found_start = False
+        found_end = False
+        name_start = -1
+        name_end = -1
+        for i, c in enumerate(name_str):
+            c = str(c)
+            if not found_start:
+                if c.isalpha():
+                    found_start = True
+                    name_start = i
+                    continue
+            elif found_start and not found_end:
+                if not c.isalnum() and c != '_':
+                    found_end = True
+                    name_end = i
+                    continue
+        if name_end != -1:
+            name = name_str[name_start:name_end]
+        else:
+            name = name_str[name_start:]
+
+        # Find width
+        before_name = name_str[:name_start]
+        if '[' in before_name:
+            n = before_name[before_name.find('[') + 1:before_name.find(':')]
+            if not is_number(n):
+                n = 0
+            width = 1 + int(n)
+        else:
+            width = 1
+
+        # Find ar_width
+        after_name = name_str[name_end:]
+        if '[' in after_name:
+            ar_width = 1 + int(after_name[after_name.find('[') + 1:after_name.find(':')])
+        else:
+            ar_width = 1
+        if 'bits_' in name:
+            name = name[:name.find('bits_')] + name[name.find('bits_') + 5:]
+
+        if 'rst' in name or 'reset' in name or 'clk' in name or 'clock' in name:
+            continue
+        ports.append(VerilogPort(name, width, ar_width, io_ty, is_logic))
+    return ports
+
+
 def scrape_aws_ports():
     with open(f"{os.environ['COMPOSER_ROOT']}/aws-fpga/hdk/common/shell_stable/design/interfaces/cl_ports.vh") as f:
-        inputs = []
-        outputs = []
-        output_logics = []
-        lns = f.readlines()
-        stripped = map(lambda x: x.strip().replace(',', '').replace('wire', ''), lns)
-        for ln in stripped:
-            if '//' in ln:
-                ln = ln[:ln.find('//')].strip()
-            if ln == '':
-                continue
-            spl = ln.split()
-            if 'input' in ln:
-                ty = 0
-            elif 'output' in ln:
-                if 'logic' in ln:
-                    ty = 1
-                else:
-                    ty = 2
-            else:
-                continue
-            # determine width
-            if len(spl) < 2:
-                continue
-            if ln.find('[') != -1:
-                # it has a width > 1
-                begin = ln.find('[') + 1
-                end = ln.find(':')
-                width = ln[begin:end].strip()
-                subt = ln[ln.rfind(']') + 1:].split()
-                name = subt[0]
-                if is_number(width):
-                    width = int(width) + 1
-            else:
-                width = 1
-                if ty != 1:
-                    name = spl[1]
-                else:
-                    name = spl[2]
-            if ty == 0:
-                inputs.append((name, width))
-            elif ty == 1:
-                output_logics.append((name, width))
-            else:
-                outputs.append((name, width))
-
-    return inputs, outputs, output_logics
+        return scrape_ports_from_lines(f.readlines())
 
 
 def scrape_cl_ports():
     ct = open(f"{os.environ.get('COMPOSER_ROOT')}/Composer-Hardware/vsim/generated-src/composer.v")
     ct_io = []
+    lns = []
     wire_id = 0
     state = 0
     for ln in ct.readlines():
@@ -76,102 +241,22 @@ def scrape_cl_ports():
         elif state == 1:
             # start scraping ios
             if ln[:2] == ');':
+                lns.append(ln)
                 break
-            spl = ln.split()
-            if len(spl) == 2:
-                # wire is width 1
-                width = 1
-                name = spl[1]
             else:
-                # number before colon, after first character ([)
-                width = int(spl[1].split(':')[0][1:]) + 1
-                name = spl[2]
-            if name.find(',') != -1:
-                name = name[:-1]
-            name = name.strip()
-            if name == 'clock' or name == 'reset':
-                continue
-            wire_name = f"COMPOSER_wire_{wire_id}"
-            wire_id = wire_id + 1
-            idx = name.find('bits_')
-            if idx != -1:
-                dest = name[:idx] + name[idx + 5:]
-            else:
-                dest = name
-            idx = dest.rfind('_')
-            dest = (dest[:idx] + dest[idx + 1:]).split('_')[-1]
-            ct_io.append({'width': width,
-                          'name': name,
-                          'wire': wire_name,
-                          'direction': spl[0],
-                          'setname': dest.split('_')[-1]})
-    return ct_io
+                lns.append(ln)
+    return scrape_ports_from_lines(lns)
 
 
 def scrape_sh_ddr_ports():
-    sh_ddr_in = []
-    sh_ddr_out = []
     with open(f"{os.environ['COMPOSER_ROOT']}/aws-fpga/hdk/common/shell_stable/design/sh_ddr/sim/sh_ddr.sv") as f:
-        lns = f.readlines()
-        for ln in lns:
-            if '//' in ln:
-                ln = ln[:ln.find('//')].strip()
-            ln = ln.strip().replace('logic', '')
-            if ln.find(');') != -1:
-                return sh_ddr_in, sh_ddr_out
-            is_input = ln.find('input') != -1
-            is_output = ln.find('output') != -1
-            if not is_output and not is_input:
-                # then it's an inout and not only do we not _want_ to deal with those,
-                # but they're already handled (they're the raw DDR pins)
-                continue
-            bracket_count = ln.count('[')
-            name_str = str(ln.replace('input', '').replace('output', '').strip())
-            found_start = False
-            found_end = False
-            name_start = -1
-            name_end = -1
-            for i, c in enumerate(name_str):
-                c = str(c)
-                if not found_start:
-                    if c.isalpha():
-                        found_start = True
-                        name_start = i
-                        continue
-                elif found_start and not found_end:
-                    if not c.isalnum() and c != '_':
-                        found_end = True
-                        name_end = i
-                        continue
-            if name_end != -1:
-                name = name_str[name_start:name_end]
-            else:
-                name = name_str[name_start:]
-
-            # Find width
-            before_name = name_str[:name_start]
-            if '[' in before_name:
-                width = 1+int(before_name[before_name.find('[')+1:before_name.find(':')])
-            else:
-                width = 1
-
-            # Find ar_width
-            after_name = name_str[name_end:]
-            if '[' in after_name:
-                ar_width = 1+int(after_name[after_name.find('[')+1:after_name.find(':')])
-            else:
-                ar_width = 1
-
-            if is_input:
-                sh_ddr_in.append((name, width, ar_width))
-            elif is_output:
-                sh_ddr_out.append((name, width, ar_width))
-    print("Error: never found ');' in `scrape_sh_ddr_ports()")
-    exit(1)
+        lns = f.readlines()[45:]
+        return scrape_ports_from_lines(lns)
 
 
 def get_num_ddr_channels():
-    with open(f"{os.environ['COMPOSER_ROOT']}/Composer-Hardware/vsim/generated-src/composer_allocator_declaration.h") as f:
+    with open(
+            f"{os.environ['COMPOSER_ROOT']}/Composer-Hardware/vsim/generated-src/composer_allocator_declaration.h") as f:
         lns = f.readlines()
         for ln in lns:
             if "NUM_DDR_CHANNELS" in ln:
@@ -185,56 +270,71 @@ def bool_to_int(b):
     return 0
 
 
-def create_aws_shell():
-    # Get io_in and io_out ports for shell so that we can initialize them all to tied off values.
-    ports_in, ports_out, ports_logics = scrape_aws_ports()
-    to_init = [q[0] for q in ports_out + ports_in]
+def search_for_part(part, prefix, part_list: list[VerilogPort]):
+    matches = []
+    for port in filter(lambda x: prefix in x.name, part_list):
+        if "_" + part == port.name[-len(part) - 1:]:
+            print(f"{part} matches in {port.name}")
+            matches.append(port)
+    return matches
 
-    cl_io = scrape_cl_ports()
-    # Now we have all IOs and their widths, time to organize
-    axil_io = list(filter(lambda x: x['name'][:3] == 'ocl', cl_io))
-    dram_io = list(filter(lambda x: x['name'][:8] == 'axi4_mem', cl_io))
 
-    def create_wire(nstr, w, arw):
-        if w == 1:
-            width_str = ""
-        else:
-            width_str = f'[{w - 1}:0] '
-        if arw == 1:
-            ar_str = ""
-        else:
-            ar_str = f" [{arw - 1}:0]"
-        g.write(f"wire {width_str}{nstr}{ar_str};\n")
+wire_counter = 0
 
-    # How many AXI4-Mem interfaces did we intialize Composer with?
-    ndram = get_num_ddr_channels()
-    assert len(axil_io) > 0
 
-    ddr_in, ddr_out = scrape_sh_ddr_ports()
+def declare_wire(g, width, ar_width):
+    global wire_counter
+    name = f"composer_{wire_counter}"
+    wire_counter = wire_counter + 1
+    return declare_wire_with_name(g, name, width, ar_width)
 
-    to_tie = []
 
-    g = open("composer_aws.sv", 'w')
-    # Write header
-    g.write(f"`include \"composer.v\"\n"
+def declare_wire_with_name(g, name, width, ar_width):
+    g.write('wire ')
+    if width > 1:
+        g.write(f"[{width - 1}:0] ")
+    g.write(name)
+    if ar_width > 1:
+        g.write(f"[{ar_width - 1}:0]")
+    g.write(";\n")
+    return Wire(name, width, ar_width)
+
+
+def write_aws_header(f):
+    f.write(f"`include \"composer.v\"\n"
             f"`include \"cl_id_defines.vh\"\n"
             f"`ifndef COMPOSER_DEFINES\n"
             f"`define COMPOSER_DEFINES\n"
             f"`define CL_NAME composer_aws\n"
             f"`define FPGA_LESS_RST\n"
-            f"`define NO_XDMA\n"
             f"`ifndef CL_VERSION\n"
             f"`define CL_VERSION 32'hee_ee_ee_00\n"
             f"`endif\n")
     # TODO this currently doesn't work for whatever reason, systemverilog doesn't see these defs
     for letter in ['A', 'B', 'D']:
-        g.write(f"`ifndef DDR_{letter}_ABSENT\n"
+        f.write(f"`ifndef DDR_{letter}_ABSENT\n"
                 f"\t`define DDR_{letter}_PRESENT 1\n"
                 f"`else\n"
                 f"\t`define DDR_{letter}_PRESENT 0\n"
                 f"`endif\n")
-    g.write("`endif\n")
+    f.write("`endif\n")
 
+
+def create_aws_shell():
+    # Get io_in and io_out ports for shell so that we can initialize them all to tied off values.
+
+    # How many AXI4-Mem interfaces did we intialize Composer with?
+    ndram = get_num_ddr_channels()
+
+    ddr_ios: list[VerilogPort] = scrape_sh_ddr_ports()
+    cl_ios: list[VerilogPort] = scrape_cl_ports()
+    shell_ports: list[VerilogPort] = scrape_aws_ports()
+
+    to_tie = []
+
+    g = open("composer_aws.sv", 'w')
+    # Write header
+    write_aws_header(g)
     # Write module header
     g.write(
         f"module composer_aws #(parameter NUM_PCIE=1, parameter NUM_DDR=4, parameter NUM_HMC=4, parameter NUM_GTY=4)\n"
@@ -259,160 +359,140 @@ def create_aws_shell():
         f"\t\tsync_rst_n <= pre_sync_rst_n;\n"
         f"\t\tactive_high_rst <= 0;\n"
         f"\tend\n")
-    concats = {}
 
     ############# INIT ALL COMPOSER STUFF ################
-    for pr in cl_io:
-        if pr['name'] == 'clock' or pr['name'] == 'reset':
+    cl_io_wiremap = {}
+    cl_mems = {}
+    axi_parts = set()
+    # Find unique part classes
+    for pr in cl_ios:
+        if 'mem' in pr.name:
+            axi_parts.add(pr.get_axi_part_name())
+    # Initialize list where all the underlying parts will live
+    for part in axi_parts:
+        cl_mems[part] = []
+    # Put hte parts in their classes
+    wnumber = 0
+    for pr in cl_ios:
+        wnumber += 1
+        if pr.name in ['clock', 'reset']:
             continue
-        if pr['width'] == 1:
-            g.write(f"wire {pr['wire']};\n")
+        if 'ocl' in pr.name:
+            group = 'ocl'
+        elif 'mem' in pr.name:
+            group = 'mem'
+        elif 'dma' in pr.name:
+            group = 'dma'
         else:
-            g.write(f"wire [{int(pr['width']) - 1}:0] {pr['wire']};\n")
-
-    valid_axi_parts = set()
-    # Do AXI4 and OCL concatenations
-    for pr in cl_io:
-        key = pr['name'].split('_')[0] + '_' + pr['setname']
-        if concats.get(key) is None:
-            concats[key] = ([pr['wire']], pr['width'], pr['direction'])
-        else:
-            assert concats[key][1] == pr['width']
-            concats[key] = (concats[key][0] + [pr['wire']], pr['width'], pr['direction'])
-    for k in concats.keys():
-        lst, width, direction = concats[k]
-        partname = k.split("_")[1]
-        if k[:3] == 'ocl':
-            def search_for_ocl_part(part, part_list):
-                for pname, pwidth in part_list:
-                    if 'ocl' in pname and "_" + part in pname:
-                        print(f"{part} matches in {pname}")
-                        return pname, int(pwidth)
-                return None, None
-            pname, pwidth = search_for_ocl_part(partname, ports_in)
-            if pname is not None:
-                if pwidth != width:
-                    print(f"Warning: CL port '{k}' has width {width} and will be tied to shell port '{pname}' with width '{pwidth}'."
-                          f"This may result in unusual behavior due to truncated bits!")
-                    g.write(f"assign {lst[0]} = {pname}[{width-1}:0];\n")
-                else:
-                    g.write(f"assign {lst[0]} = {pname};\n")
-            else:
-                pname, pwidth = search_for_ocl_part(partname, ports_out + ports_logics)
-                if pname is None:
-                    if direction == 'input':
-                        g.write(f"assign {lst[0]} = 0;\n")
-                        print(f"couldn't find match for {partname}/{lst[0]}, tieing to 0")
-                    else:
-                        print(f"couldn't find match for {partname}")
-                    continue
-                if pwidth != width:
-                    print(f"This happened 3 :( {pname} {partname} {width} {pwidth}")
-                g.write(f"assign {pname} = {lst[0]};\n")
-        elif k[:4] == 'axi4':
-            # deal with DDR_C first to scrape out_port width
-            valid_axi_parts.add(partname)
-
-            def search_for_part(part, part_list):
-                for pname, pwidth in part_list:
-                    if pname.find("ddr_" + part) != -1:
-                        pwidth = int(pwidth)
-                        return pname, pwidth
-                return None, None
-            
-            pname, pwidth = search_for_part(partname, ports_in)
-            is_out = False
-            if pname is not None:
-                if pwidth != width:
-                    print(f"Warning! CL has part corresponding to {partname} with width{width}. Tieing it to "
-                          f"part {pname} with width {pwidth} via truncation which might cause some issues.")
-                g.write(f"assign {lst[0]} = {pname};\n")
-                is_out = False
-            else:
-                pname, pwidth = search_for_part(partname, ports_out + ports_logics)
-                if pname is None:
-                    print(f"Couldn't find {partname} anywhere!")
-                    continue
-                if pwidth != width:
-                    g.write(f"assign {pname} = " + "{" + f"{pwidth-int(width)}'b0, {lst[0]}" + "};\n")
-                else:
-                    g.write(f"assign {pname} = {lst[0]};\n")
-                is_out=True
-
-            def find_ddr_part(part, part_list):
-                for dpart, dwidth, darwid in ddr_in + ddr_out:
-                    if f"_{part}" in dpart:
-                        return dwidth, darwid, dpart
-                return None, None
-
-            dwidth, darwid, dpartname = find_ddr_part(partname, ddr_in + ddr_out)
-            if dwidth is None:
-                dwidth = pwidth
-                darwid = 3
-            if dwidth == 1:
-                dstr = ""
-            else:
-                dstr = f"[{dwidth-1}:0] "
-            if darwid == 1:
-                arstr = ""
-            else:
-                arstr = f" [{darwid-1}:0]"
-            g.write(f"wire {dstr}{k}{arstr};\n")
-            # first 3 go in the sh_ddr module, last goes directly to shell
-            for i, ele in enumerate(lst[1:]):
-                if width == pwidth:
-                    g.write(f"assign {k}[{i}] = {ele};\n")
-                else:
-                    g.write(f"assign {k}[{i}] = " + "{" + f"{pwidth-int(width)}'b0, {ele}" + "};\n")
-
-            n_missing = 4-len(lst)
-            if n_missing > 1:
-                for i in range(n_missing):
-                    g.write(f"assign {k}[{2 - i}] = {pwidth}'b0;\n")
-
-        else:
-            print("GOT A WEIRD KEY: " + str(k))
-            exit(1)
-
-    # Route stat pins between sh_ddr module and shell
-    ddr_stats = {}
-
-    def add_stats_wires(ddr_lst, is_input):
-        wire_id = 0
-        if is_input:
-            wids = 1
-        else:
-            wids = 0
-        if is_input:
-            my_list = ddr_in
-        else:
-            my_list = ddr_out
-        for ddr_name, ddr_width, ddr_ar_width in my_list:
-            if 'stat' not in ddr_name or 'clk' in ddr_name or 'rst' in ddr_name:
+            raise Exception("Unrecognized output group")
+        wr = declare_wire_with_name(g, f"composer_{group}{wnumber}_{pr.get_axi_part_name()}", pr.width, pr.ar_width)
+        # find wires in the group and fuse them together
+        cl_io_wiremap.update({pr: wr})
+        if 'mem' in pr.name:
+            a = cl_mems[pr.get_axi_part_name()]
+            cl_mems[pr.get_axi_part_name()] = a + [wr]
+    # Shape the parts into the same shape as the ddr ports
+    ddr_axis = {}
+    reserved_ddr_wires = ['sh_cl_ddr_is_ready']
+    reserved_ddr_map = {}
+    for ddr in ddr_ios:
+        if ddr.is_ddr_pin():
+            if ddr.name in reserved_ddr_wires:
+                res = declare_wire_with_name(g, f"RESERVED_{ddr.name}", ddr.width, ddr.ar_width)
+                reserved_ddr_map.update({ddr.name: res})
                 continue
-            wire_name = f"wire_stat_{wids}_{wire_id}"
-            wire_id = wire_id + 1
-            create_wire(wire_name, ddr_width, ddr_ar_width)
-            ddr_stats[ddr_name] = wire_name
-            if is_input:
-                g.write(f"assign {wire_name} = {ddr_name};\n")
+            if ddr.ar_width == 1 and ddr.width > 1:
+                ddr_wire = [declare_wire_with_name(g, f"composer_ddr_{i}_{ddr.get_axi_part_name()}", 1, 1)
+                            for i in range(ddr.width)]
             else:
-                g.write(f"assign {ddr_name} = {wire_name};\n")
+                ddr_wire = [declare_wire_with_name(g, f"composer_ddr_{i}_{ddr.get_axi_part_name()}", ddr.width, 1)
+                            for i in range(ddr.ar_width)]
+            ddr_fuse = declare_wire_with_name(g, f"composer_ddr_fuse_{ddr.get_axi_part_name()}", ddr.width,
+                                              ddr.ar_width)
+            for i, w in enumerate(ddr_wire):
+                if ddr.input:
+                    ddr_fuse.get_array_subwire(i).assign(g, w)
+                else:
+                    w.assign(g, ddr_fuse.get_array_subwire(i))
 
-    add_stats_wires(ddr_in, True)
-    add_stats_wires(ddr_out, False)
+            ddr_axis.update({ddr.get_axi_part_name(): ddr_fuse})
+            if cl_mems.get(ddr.get_axi_part_name()) is None and ddr.input:
+                print(f"Skipping part {ddr.name}. We think it's an AXI3 interface...")
+                continue
+            # Find parts to bind to from CL / shell
+            ports = cl_mems[ddr.get_axi_part_name()]
+            assert ports is not None
+            if len(ports) == 0:
+                print("no ports found matching " + ddr.get_axi_part_name())
+                break
+            # we use shell ports first (only sh_ddr for 2nd 3rd 4th dimm)
+            if len(ports) >= 1:
+                # hook up the shell DDR_C port to the first port
+                shell_port = search_for_part(ddr.get_axi_part_name(), "ddr_", shell_ports)
+                assert len(shell_port) == 1
+                shell_port = shell_port[0]
+                if shell_port.input:
+                    ports[0].assign(g, shell_port)
+                else:
+                    shell_port.assign(g, ports[0])
+            else:
+                if ddr.input:
+                    ddr_wire[0].tie_off(g)
 
-    # Instantiate actual ComposerTop module
+            ports = ports[1:]
+            ports = ports + (3 - len(ports)) * [None]
+            # do the rest of the sh_ddr ports
+            for i, port in enumerate(ports):
+                if port is None:
+                    if ddr.input:
+                        ddr_wire[i].tie_off(g)
+                else:
+                    if ddr.output:
+                        port.assign(g, ddr_wire[i])
+                    else:
+                        ddr_wire[i].assign(g, port)
+
+    # Connect the OCL AXIL ports
+    for clio in cl_io_wiremap.keys():
+        wi = cl_io_wiremap[clio]
+        if not 'ocl' in clio.name:
+            continue
+        p = search_for_part(clio.get_axi_part_name(), 'ocl', shell_ports)
+        if len(p) == 0:
+            if clio.input:
+                wi.tie_off(g)
+            continue
+        p = p[0]
+        if p.input:
+            wi.assign(g, p)
+        else:
+            p.assign(g, wi)
+
+    for dma in filter(lambda x: 'dma' in x.name, cl_ios):
+        # find matching composer logic port
+        p = search_for_part(dma.get_axi_part_name(), "dma_pcis", shell_ports)
+        if len(p) == 0:
+            if dma.input:
+                cl_io_wiremap[dma].tie_off(g)
+                continue
+            else:
+                continue
+        if dma.input:
+            cl_io_wiremap[dma].assign(g, p[0])
+        else:
+            p[0].assign(g, cl_io_wiremap[dma])
+
     g.write("ComposerTop myTop(\n"
             "\t.clock(clk),\n"
             "\t.reset(active_high_rst),\n")
-    for i, pr in enumerate(cl_io):
-        g.write(f"\t.{pr['name']}({pr['wire']})")
-        if i == len(cl_io) - 1:
+    for i, pr in enumerate(cl_ios):
+        g.write(f"\t.{pr.name}({cl_io_wiremap[pr].name})")
+        if i == len(cl_ios) - 1:
             g.write("\n")
         else:
             g.write(",\n")
     g.write(');\n')
+
     # Instantiate SH_DDR module
     g.write(f"// DDR controller instantiation\n"
             f"sh_ddr #(.DDR_A_PRESENT({bool_to_int(ndram > 1)}),"
@@ -423,9 +503,31 @@ def create_aws_shell():
             f".rst_n(sync_rst_n),\n"
             f".stat_clk(clk),\n"
             f".stat_rst_n(sync_rst_n)")
+    # Now we add DDR ports
+    for port in ddr_ios:
+        if port.name[:2] == 'M_' or 'CLK' in port.name or 'RST' in port.name:
+            continue
+        if 'stat' in port.name:
+            # find opposing port in shell
+            p = search_for_part(port.get_stat_name(), 'ddr', shell_ports)
+            assert len(p) == 1
+            p = p[0]
+            if p.output or p.inout:
+                g.write(f".{port.name}({p.name}),\n")
+            else:
+                g.write(f".{p.name}({port.name}),\n")
+            continue
+        assert not port.inout
+        if port.name in reserved_ddr_wires:
+            g.write(f".{port.name}({reserved_ddr_map[port.name].name}),\n")
+            continue
+
+        fuse = ddr_axis[port.get_axi_part_name()]
+        assert fuse is not None
+        g.write(f".{port.name}({fuse.name}),\n")
     # write signals that go straight to shell (DDR pins)
     for letter, number in [('A', '0'), ('B', '1'), ('D', '3')]:
-        g.write(f",\n.CLK_300M_DIMM{number}_DP(CLK_300M_DIMM{number}_DP),\n"
+        g.write(f"  .CLK_300M_DIMM{number}_DP(CLK_300M_DIMM{number}_DP),\n"
                 f".CLK_300M_DIMM{number}_DN(CLK_300M_DIMM{number}_DN),\n"
                 f".M_{letter}_ACT_N(M_{letter}_ACT_N),\n"
                 f".M_{letter}_MA(M_{letter}_MA),\n"
@@ -442,79 +544,27 @@ def create_aws_shell():
                 f".M_{letter}_DQS_DP(M_{letter}_DQS_DP),\n"
                 f".M_{letter}_DQS_DN(M_{letter}_DQS_DN),\n"
                 f".cl_RST_DIMM_{letter}_N(RST_DIMM_{letter}_N)")
-    # Now we add connections between AXI4 from composer to the AXI part of the controller
-    for name, width, ar_width in ddr_in:
-        # special pins, don't worry about these
-        if name.find('clk') != -1 or name.find('rst') != -1 or name.find('CLK') != -1 or name.find('RST') != -1\
-                or name[:2] == "M_":
-            continue
-        if name[:10] == "cl_sh_ddr_" or name[:10] == "sh_cl_ddr_":
-            if name.find("is_ready") != -1:
-                continue
-            # Then we're an AXI port
-            part = name.split("_")[-1]
-            if part in valid_axi_parts:
-                g.write(f",\n.{name}(axi4_{part})")
-            else:
-                # should just be w_id
-                to_tie.append((name, width, ar_width))
-        elif name.find('stat') != -1:
-            g.write(f",\n.{name}({ddr_stats[name]})")
-        else:
-            print("Found unrecognized port in sh_ddr " + str(name))
-            exit(1)
-
-    # don't add ties for unneeded output pins
-    for name, width, ar_width in ddr_out:
-        # special pins, don't worry about these
-        if name.find('clk') != -1 or name.find('rst') != -1 or name.find('CLK') != -1 or name.find('RST') != -1\
-                or name[:2] == "M_":
-            continue
-        if name[:10] == "cl_sh_ddr_" or name[:10] == "sh_cl_ddr_":
-            if name.find("is_ready") != -1:
-                continue
-            # Then we're an AXI port
-            part = name.split("_")[-1]
-            if part in valid_axi_parts:
-                g.write(f",\n.{name}(axi4_{part})")
-    g.write(");\n"
-            "assign cl_sh_id0 = `CL_SH_ID0;\n"
-            "assign cl_sh_id1 = `CL_SH_ID1;\n"
-            "assign cl_sh_status1 = `CL_VERSION;\n")
-
-    reserved = ['cl_sh_id0', 'cl_sh_id1', 'cl_sh_status1']
-
+    g.write(");\n")
+    list(filter(lambda x: x.name == 'cl_sh_id0', shell_ports))[0].assign_constant(g, "`CL_SH_ID0")
+    list(filter(lambda x: x.name == 'cl_sh_id1', shell_ports))[0].assign_constant(g, "`CL_SH_ID1")
+    list(filter(lambda x: x.name == 'cl_sh_status1', shell_ports))[0].assign_constant(g, "`CL_VERSION")
     g.write("// begin tie-offs\n")
-    for port_out_name, port_width in ports_out + ports_logics:
-        lower = str(port_out_name).lower()
-        if lower in reserved or port_out_name[:2] == 'M_' or lower.find('ddr') != -1 \
+    for pwire in shell_ports:
+        lower = pwire.name.lower()
+        if pwire.name[:2] == 'M_' or lower.find('ddr') != -1 \
                 or lower.find('ocl') != -1 or lower.find('clk') != -1 or lower.find('rst') != -1:
             continue
+        print(lower)
         if 'ack' in lower:
             set_to = "1"
         else:
             set_to = "0"
-        if set_to == '0':
-            g.write(f"assign {port_out_name} = {set_to};\n")
-        else:
-            if int(port_width) > 1:
-                set_to = f"{port_width}'b" + (set_to * int(port_width))
-            g.write(f"assign {port_out_name} = {set_to};\n")
+
+        if pwire.output and pwire.occupancy < pwire.ar_width:
+            pwire.tie_off(g, set_to)
 
     g.write("// begin secondary tie-offs\n")
     # Do tie-offs
-    for name, width, ar_width in to_tie:
-        if 'ack' in name.lower():
-            set_to = "1"
-        else:
-            set_to = "0"
-        if width > 1:
-            set_to = f"{width}'b" + (set_to * width)
-        if ar_width == 1:
-            g.write(f"assign {name} = {set_to};\n")
-        else:
-            for i in range(ar_width):
-                g.write(f"assign {name}[{i}] = {set_to};\n")
 
     g.write("\nendmodule\n")
 
@@ -542,7 +592,8 @@ def write_encrypt_script_from_base_inline(fname, ):
                         f.write(tw)
                     to_write = None
             elif "-lang verilog" in ln:
-                f.write("encrypt -k $HDK_SHELL_DIR/build/scripts/vivado_keyfile_2017_4.txt -lang verilog  [glob -nocomplain -- $TARGET_DIR/*.{v,sv,vh,inc}]\n")
+                f.write(
+                    "encrypt -k $HDK_SHELL_DIR/build/scripts/vivado_keyfile_2017_4.txt -lang verilog  [glob -nocomplain -- $TARGET_DIR/*.{v,sv,vh,inc}]\n")
             else:
                 f.write(ln)
 
@@ -557,11 +608,10 @@ def create_synth_script(oname):
                 g.write(f"read_verilog -sv [glob {os.getcwd()}/design/*v]")
             elif "*.?v" in ln:
                 idx = ln.find("*.?v")
-                g.write(ln[:idx] + "*v" + ln[idx+4:])
+                g.write(ln[:idx] + "*v" + ln[idx + 4:])
             else:
                 g.write(ln)
 
 
 def create_dcp_script_inline(fname):
     os.system(f"sed -i.bu 's/cl_hello_world/composer_aws/g' {fname}")
-
