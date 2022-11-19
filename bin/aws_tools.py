@@ -81,6 +81,11 @@ class Wire:
 class VerilogPort(Wire):
     def __init__(self, name: str, width: int, ar_len: int, io_type: str, is_logic: bool):
         super().__init__(name, width, ar_width=ar_len)
+        if 'bits_' in name:
+            idx = name.find('bits_')
+            self.axi_clean_name = name[:idx] + name[idx + len('bits_'):]
+        else:
+            self.axi_clean_name = name
         self.input = io_type == 'input'
         self.output = io_type == 'output'
         self.inout = io_type == 'inout'
@@ -88,23 +93,23 @@ class VerilogPort(Wire):
         assert self.input or self.output or self.inout
 
     def get_group_name(self):
-        if not '_' in self.name:
+        if not '_' in self.axi_clean_name:
             return None
         else:
-            return self.name[:self.name.find('_')]
+            return self.axi_clean_name[:self.axi_clean_name.find('_')]
 
     def get_axi_part_name(self):
         if self.is_ddr_pin():
-            return self.name.split('_')[-1]
+            return self.axi_clean_name.split('_')[-1]
         else:
-            spl = self.name.split('_')
+            spl = self.axi_clean_name.split('_')
             return spl[-2] + spl[-1]
 
     def is_stat(self):
-        return 'ddr' in self.name and 'stat' in self.name
+        return 'ddr' in self.axi_clean_name and 'stat' in self.axi_clean_name
 
     def get_stat_name(self):
-        return self.name.split('_')[-1]
+        return self.axi_clean_name.split('_')[-1]
 
     def __hash__(self):
         return self.name.__hash__()
@@ -228,8 +233,8 @@ def scrape_ports_from_lines(lns):
             ar_width = 1 + int(after_name[after_name.find('[') + 1:after_name.find(':')])
         else:
             ar_width = 1
-        if 'bits_' in name:
-            name = name[:name.find('bits_')] + name[name.find('bits_') + 5:]
+        # if 'bits_' in name:
+        #     name = name[:name.find('bits_')] + name[name.find('bits_') + 5:]
 
         if 'rst' in name or 'reset' in name or 'clk' in name or 'clock' in name:
             continue
