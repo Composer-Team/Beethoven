@@ -72,6 +72,11 @@ class Wire:
                 g.write(f"{self.width}'b{tieoff}, ")
             g.write("};\n")
 
+    def __and__(self, other):
+        assert other.ar_width == 1 and self.ar_width == 1
+        assert other.width == self.width
+        return Wire(f"({self.name} & {other.name})", self.width, 1)
+
 
 class VerilogPort(Wire):
     def __init__(self, name: str, width: int, ar_len: int, io_type: str, is_logic: bool):
@@ -143,11 +148,15 @@ def scrape_ports_from_lines(lns):
         # TODO maybe scrape the defines for use later...
         if '`define' in ln:
             continue
+        if skip > 0:
+            continue
         lns_filt.append(ln)
         assert skip >= 0
 
     for ln in lns_filt:
         lncopy = ln
+        if 'NUM_GTY' in ln:
+            raise Exception("AHH")
         # remove everything after comments
         if '//' in ln:
             ln = ln[:ln.find('//')].strip()
@@ -372,6 +381,22 @@ def create_aws_shell():
     for part in axi_parts:
         cl_mems[part] = []
     # Put hte parts in their classes
+
+    # collate the ddr_is_ready signals so we can throw them in ComposerTop somewhere
+    if ndram > 0:
+        creadys = []
+        if ndram >= 1:
+            creadys.append(search_for_part("is_ready", "ddr_", shell_ports)[0])
+        if ndram > 1:
+            rp = search_for_part("is_ready", "ddr_", ddr_ios)
+            creadys += rp[:ndram-1]
+
+        for cr in creadys[1:]:
+            creadys[0] = creadys[0] & cr
+        dram_trained_signal = creadys[0]
+    else:
+        dram_trained_signal = Wire("1'b1", 1, 1)
+
     wnumber = 0
     for pr in cl_ios:
         wnumber += 1
@@ -385,8 +410,11 @@ def create_aws_shell():
             group = 'dma'
         else:
             raise Exception("Unrecognized output group")
-        wr = declare_wire_with_name(g, f"composer_{group}{wnumber}_{pr.get_axi_part_name()}", pr.width, pr.ar_width)
+        apn = pr.get_axi_part_name()
+        wr = declare_wire_with_name(g, f"composer_{group}{wnumber}_{apn}", pr.width, pr.ar_width)
         # find wires in the group and fuse them together
+        if 'arready' in apn or 'awready' in apn:
+            wr = wr & dram_trained_signal
         cl_io_wiremap.update({pr: wr})
         if 'mem' in pr.name:
             a = cl_mems[pr.get_axi_part_name()]
