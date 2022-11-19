@@ -570,7 +570,9 @@ def create_aws_shell():
         g.write(f".{port.name}({fuse.name}),\n")
     # write signals that go straight to shell (DDR pins)
     for letter, number in [('A', '0'), ('B', '1'), ('D', '3')]:
-        g.write(f"  .CLK_300M_DIMM{number}_DP(CLK_300M_DIMM{number}_DP),\n"
+        if letter != 'A':
+            g.write(",\n")
+        g.write(f".CLK_300M_DIMM{number}_DP(CLK_300M_DIMM{number}_DP),\n"
                 f".CLK_300M_DIMM{number}_DN(CLK_300M_DIMM{number}_DN),\n"
                 f".M_{letter}_ACT_N(M_{letter}_ACT_N),\n"
                 f".M_{letter}_MA(M_{letter}_MA),\n"
