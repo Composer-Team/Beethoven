@@ -422,8 +422,6 @@ def create_aws_shell():
         apn = pr.get_axi_part_name()
         wr = declare_wire_with_name(g, f"composer_{group}{wnumber}_{apn}", pr.width, pr.ar_width)
         # find wires in the group and fuse them together
-        if 'arready' in apn or 'awready' in apn:
-            wr = wr & dram_trained_signal
         cl_io_wiremap.update({pr: wr})
         if 'mem' in pr.name:
             a = cl_mems[pr.get_axi_part_name()]
@@ -433,18 +431,19 @@ def create_aws_shell():
     reserved_ddr_wires = ['sh_cl_ddr_is_ready']
     reserved_ddr_map = {}
     for ddr in ddr_ios:
+        axi_name = ddr.get_axi_part_name()
         if ddr.is_ddr_pin():
             if ddr.name in reserved_ddr_wires:
                 res = declare_wire_with_name(g, f"RESERVED_{ddr.name}", ddr.width, ddr.ar_width)
                 reserved_ddr_map.update({ddr.name: res})
                 continue
             if ddr.ar_width == 1 and ddr.width > 1:
-                ddr_wire = [declare_wire_with_name(g, f"composer_ddr_{i}_{ddr.get_axi_part_name()}", 1, 1)
+                ddr_wire = [declare_wire_with_name(g, f"composer_ddr_{i}_{axi_name}", 1, 1)
                             for i in range(ddr.width)]
             else:
-                ddr_wire = [declare_wire_with_name(g, f"composer_ddr_{i}_{ddr.get_axi_part_name()}", ddr.width, 1)
+                ddr_wire = [declare_wire_with_name(g, f"composer_ddr_{i}_{axi_name}", ddr.width, 1)
                             for i in range(ddr.ar_width)]
-            ddr_fuse = declare_wire_with_name(g, f"composer_ddr_fuse_{ddr.get_axi_part_name()}", ddr.width,
+            ddr_fuse = declare_wire_with_name(g, f"composer_ddr_fuse_{axi_name}", ddr.width,
                                               ddr.ar_width)
             for i, w in enumerate(ddr_wire):
                 if ddr.input:
@@ -452,23 +451,26 @@ def create_aws_shell():
                 else:
                     w.assign(g, ddr_fuse.get_array_subwire(i))
 
-            ddr_axis.update({ddr.get_axi_part_name(): ddr_fuse})
-            if cl_mems.get(ddr.get_axi_part_name()) is None and ddr.input:
+            ddr_axis.update({axi_name: ddr_fuse})
+            if cl_mems.get(axi_name) is None and ddr.input:
                 print(f"Skipping part {ddr.name}. We think it's an AXI3 interface...")
                 continue
             # Find parts to bind to from CL / shell
             ports = cl_mems[ddr.get_axi_part_name()]
             assert ports is not None
             if len(ports) == 0:
-                print("no ports found matching " + ddr.get_axi_part_name())
+                print("no ports found matching " + axi_name)
                 break
             # we use shell ports first (only sh_ddr for 2nd 3rd 4th dimm)
+
             if len(ports) >= 1:
                 # hook up the shell DDR_C port to the first port
-                shell_port = search_for_part(ddr.get_axi_part_name(), "ddr_", shell_ports)
+                shell_port = search_for_part(axi_name, "ddr_", shell_ports)
                 assert len(shell_port) == 1
                 shell_port = shell_port[0]
                 if shell_port.input:
+                    if axi_name in ['awready', 'arready']:
+                        shell_port = shell_port & dram_trained_signal
                     ports[0].assign(g, shell_port)
                 else:
                     shell_port.assign(g, ports[0])
@@ -485,7 +487,11 @@ def create_aws_shell():
                         ddr_wire[i].tie_off(g)
                 else:
                     if ddr.output:
-                        port.assign(g, ddr_wire[i])
+                        if axi_name in ['awready', 'arready']:
+                            to_assign = ddr_wire[i] & dram_trained_signal
+                        else:
+                            to_assign = ddr_wire[i]
+                        port.assign(g, to_assign)
                     else:
                         ddr_wire[i].assign(g, port)
 
