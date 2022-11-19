@@ -404,15 +404,19 @@ def create_aws_shell():
         cl_mems[part] = []
     # Put hte parts in their classes
 
+    reserved_ddr_wires = ['sh_cl_ddr_is_ready']
+    reserved_ddr_map = {}
+    ddr_trained_ddrpart = search_for_part("is_ready", "ddr_", ddr_ios)[0]
+    ddr_trained_ddrsig = declare_wire_with_name(g, "RESERVED_sh_ddr_is_ready", ddr_trained_ddrpart.width,
+                                                ddr_trained_ddrpart.ar_width)
+    reserved_ddr_map.update({ddr_trained_ddrpart: ddr_trained_ddrsig})
     # collate the ddr_is_ready signals so we can throw them in ComposerTop somewhere
     if ndram > 0:
         creadys = []
         if ndram >= 1:
             creadys.append(search_for_part("is_ready", "ddr_", shell_ports)[0])
         if ndram > 1:
-            rp = search_for_part("is_ready", "ddr_", ddr_ios)[0]
-            creadys += [rp.get_array_subwire(i) for i in range(ndram-1)]
-
+            creadys += [ddr_trained_ddrsig.get_array_subwire(i) for i in range(ndram-1)]
         for cr in creadys[1:]:
             creadys[0] = creadys[0] & cr
         dram_trained_signal = creadys[0]
@@ -441,14 +445,10 @@ def create_aws_shell():
             cl_mems[pr.get_axi_part_name()] = a + [wr]
     # Shape the parts into the same shape as the ddr ports
     ddr_axis = {}
-    reserved_ddr_wires = ['sh_cl_ddr_is_ready']
-    reserved_ddr_map = {}
     for ddr in ddr_ios:
         axi_name = ddr.get_axi_part_name()
         if ddr.is_ddr_pin():
             if ddr.name in reserved_ddr_wires:
-                res = declare_wire_with_name(g, f"RESERVED_{ddr.name}", ddr.width, ddr.ar_width)
-                reserved_ddr_map.update({ddr.name: res})
                 continue
             if ddr.ar_width == 1 and ddr.width > 1:
                 ddr_wire = [declare_wire_with_name(g, f"composer_ddr_{i}_{axi_name}", 1, 1)
@@ -575,7 +575,7 @@ def create_aws_shell():
             continue
         assert not port.inout
         if port.name in reserved_ddr_wires:
-            g.write(f".{port.name}({reserved_ddr_map[port.name].name}),\n")
+            g.write(f".{port.name}({reserved_ddr_map[port].name}),\n")
             continue
 
         fuse = ddr_axis[port.get_axi_part_name()]
