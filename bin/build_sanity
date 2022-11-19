@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import os
 
 choice = input("Build sanity for (1) fpga, (2) xsim")
