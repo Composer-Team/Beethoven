@@ -1,5 +1,5 @@
 import os
-
+from typing import List
 
 def is_number(q):
     # noinspection PyBroadException
@@ -288,7 +288,7 @@ def bool_to_int(b):
     return 0
 
 
-def search_for_part(part, prefix, part_list: list[VerilogPort]):
+def search_for_part(part, prefix, part_list: List[VerilogPort]):
     matches = []
     for port in filter(lambda x: prefix in x.name, part_list):
         if "_" + part == port.name[-len(part) - 1:]:
@@ -344,9 +344,9 @@ def create_aws_shell():
     # How many AXI4-Mem interfaces did we intialize Composer with?
     ndram = get_num_ddr_channels()
 
-    ddr_ios: list[VerilogPort] = scrape_sh_ddr_ports()
-    cl_ios: list[VerilogPort] = scrape_cl_ports()
-    shell_ports: list[VerilogPort] = scrape_aws_ports()
+    ddr_ios: List[VerilogPort] = scrape_sh_ddr_ports()
+    cl_ios: List[VerilogPort] = scrape_cl_ports()
+    shell_ports: List[VerilogPort] = scrape_aws_ports()
 
     to_tie = []
 
