@@ -123,6 +123,27 @@ class VerilogPort(Wire):
         super().assign(g, Wire(val_str, self.width, self.ar_width))
 
 
+class Reg(Wire):
+    def assign(self, g, operand: Wire):
+        assert self.occupancy < self.ar_width
+        assert operand.ar_width == 1
+        self.assignment.append(operand)
+        assert self.ar_width == 1
+        op1 = self.name
+        # Dont' overassign
+        if operand.width < self.width:
+            op2 = '{' + f"{self.width - operand.width}'b0, {operand.name}" + "}"
+        elif self.width < operand.width:
+            op2 = f"{operand.name}[{self.width - 1}:0]"
+        else:
+            op2 = operand.name
+        g.write(f"always_ff @(posedge clk)\n"
+                f"begin\n"
+                f"\t{op1} <= {op2};\n"
+                f"end\n")
+        self.occupancy += 1
+
+
 def scrape_ports_from_lines(lns):
     ports = []
     lns_fresh = map(lambda x: x.strip().replace(',', '').replace('wire', ''), lns)
@@ -328,6 +349,17 @@ def declare_wire_with_name(g, name, width, ar_width):
     return Wire(name, width, ar_width)
 
 
+def declare_reg_with_name(g, name, width, ar_width):
+    g.write('logic ')
+    if width > 1:
+        g.write(f"[{width - 1}:0] ")
+    g.write(name)
+    if ar_width > 1:
+        g.write(f"[{ar_width - 1}:0]")
+    g.write(";\n")
+    return Reg(name, width, ar_width)
+
+
 def write_aws_header(f):
     f.write(f"`include \"composer.v\"\n"
             f"`include \"cl_id_defines.vh\"\n"
@@ -407,16 +439,21 @@ def create_aws_shell():
     reserved_ddr_wires = ['sh_cl_ddr_is_ready']
     reserved_ddr_map = {}
     ddr_trained_ddrpart = search_for_part("is_ready", "ddr_", ddr_ios)[0]
-    ddr_trained_ddrsig = declare_wire_with_name(g, "RESERVED_sh_ddr_is_ready", ddr_trained_ddrpart.width,
+    ddr_trained_ddrsig = declare_wire_with_name(g, "RESERVED_SH_DDR_WIRE_is_ready", ddr_trained_ddrpart.width,
                                                 ddr_trained_ddrpart.ar_width)
     reserved_ddr_map.update({ddr_trained_ddrpart: ddr_trained_ddrsig})
     # collate the ddr_is_ready signals so we can throw them in ComposerTop somewhere
     if ndram > 0:
         creadys = []
         if ndram >= 1:
-            creadys.append(search_for_part("is_ready", "ddr_", shell_ports)[0])
+            shell_sig_reg = declare_reg_with_name(g, "RESERVED_SHELL_is_ddr_ready", 1, 1)
+            shell_sig_reg.assign(g, search_for_part("is_ready", "ddr_", shell_ports)[0])
+            creadys.append(shell_sig_reg)
         if ndram > 1:
-            creadys += [ddr_trained_ddrsig.get_array_subwire(i) for i in range(ndram-1)]
+            for i in range(ndram-1):
+                shell_sig_reg = declare_reg_with_name(g, f"RESERVED_SH_DDR_is_ddr_ready{i}", 1, 1)
+                shell_sig_reg.assign(g, ddr_trained_ddrsig.get_array_subwire(i))
+                creadys.append(shell_sig_reg)
         for cr in creadys[1:]:
             creadys[0] = creadys[0] & cr
         dram_trained_signal = creadys[0]
