@@ -55,8 +55,12 @@ elif opts['backend'] == 'aws' or opts['backend'] == 'vsim' or opts['backend'] ==
     aws_tools.create_aws_shell()
 
     path = f"{hdk_dir}/common/shell_stable/new_cl_template/"
+    # copy cl template
     os.system(f"cp -rL {path}/build . && mkdir -p design && mv composer_aws.sv design/ &&"
               f" cp generated-src/composer.v design/")
+    # copy in the cl_dram_dma constraints over it
+    os.system(f"cp {hdk_dir}/cl/examples/cl_dram_dma/build/constraints/* build/constraints/")
+
     aws_tools.write_id_defines()
 
     aws_tools.write_encrypt_script_from_base_inline("build/scripts/encrypt.tcl")
