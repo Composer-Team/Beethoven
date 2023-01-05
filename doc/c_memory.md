@@ -27,4 +27,4 @@ abstractions can efficiently map to the intended behavior of the user, then the 
 Composer exposes HLS-like interfaces with memory readers, writers, and then a BRAM/URAM scratchpad. More options will
 likely be added in future releases.
 
-[Next (Readers)]()
+[Next (Readers)](c_readers.md)
