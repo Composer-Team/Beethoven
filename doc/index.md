@@ -19,9 +19,9 @@ for Composer tooling.
   - [Memory Subsystem](c_memory.md)
     - [Readers](c_readers.md)
     - [Writers](c_writers.md)
-    - [Scratchpad]()
-  - [Accelerator Configuration]()
-- Software
+    - [Scratchpad](c_scratchpad.md)
+  - [Accelerator Configuration](c_config.md)
+- [Software](c_software.md)
   - [C++ Bindings]()
 - [Deployment]()
   - [AWS]()

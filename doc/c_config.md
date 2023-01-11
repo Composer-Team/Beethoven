@@ -350,3 +350,5 @@ class FlatPackScratchpadParams extends CScratchpadSpecialization
   - Latency 1 uses SyncReadMem without register - may not always pass timing
   - Latency 2 uses SyncReadMem with register - use when timing may be an issue
 - `specialization` - due to the specialized nature of custom logic, data may be packed in memory very tightly. Currently support `PackedSubwordScratchpadParams` and `FlatPackScratchpadParams` detailed above.
+
+[Go to next (Software Development)](c_software.md)
