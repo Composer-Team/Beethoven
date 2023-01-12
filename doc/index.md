@@ -22,7 +22,6 @@ for Composer tooling.
     - [Scratchpad](c_scratchpad.md)
   - [Accelerator Configuration](c_config.md)
 - [Software](c_software.md)
-  - [C++ Bindings]()
 - [Deployment]()
   - [AWS]()
   - [Kria]()

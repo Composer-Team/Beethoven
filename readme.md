@@ -1,5 +1,8 @@
 # Composer
 
+The following instructions show what prerequisites are necessary to install and use Composer.
+For information on _how_ to use Composer, see [here](doc/index.md).
+
 # Prerequisites 
 
 To use the Composer framework, the only necessary installations are [sbt](https://www.scala-sbt.org) and CMake.
@@ -94,3 +97,64 @@ aws ec2 create-fpga image --region <your_zone_name> --name <your_image_name> --d
 This takes some more time to create, you can check on the status of the build with `aws ec2 describe-fpga-images --owner self`
 Once you see "Status: Available", you're ready to flash the image onto the FPGA.
 
+# Installation and Running
+
+Assuming you now have `cmake`, `sbt`, and `verilator`, we can run simulations of some basic examples.
+First, set up the repo. Make sure to `export COMPOSER_ROOT=` to the appropriate directory in your `.bashrc`.
+
+```shell
+# inside Composer/
+./setup.sh
+```
+
+Second, install the composer user library.
+Composer uses CMake to find this library later on so make sure that if you are performing a local install that
+CMake knows where to look.
+Putting `export LD_RUN_PATH=$LD_RUN_PATH:<your_install_path>` in your `.bashrc` should do the trick.
+
+```shell
+cd Composer-Software
+mkdir build
+# For local builds, specify -DCMAKE_INSTALL_PREFIX=???
+# For Debug builds, specify -DCMAKE_BUILD_TYPE=Debug
+cmake ..
+make
+make install
+```
+
+Now we have everything we need to run some basic examples.
+```shell
+# Switch to hardware repo from software library repo
+cd ../Composer-Hardware
+# When prompted by sbt, run design.ExampleConfig (3)
+sbt run
+```
+
+If you look in the `Composer-Hardware/vsim/generated-src/` directory, you will find `composer.v` and other files that
+now contain our design.
+Now we can run the simulation.
+We suggest running the simulation of the FPGA in a separate window from the user software but it is possible to do this with one window as well.
+In one window, build and run the simulator.
+```shell
+# Switch to runtime repo
+cd ../Composer-Runtime/
+mkdir build
+cmake .. -TARGET=sim
+make
+./ComposerRuntime
+# Now Verilator is running the design.ExamplesConfig 
+```
+
+In another window build and run the code examples.
+```shell
+# Switch to examples repo
+cd ../Composer-Examples
+mkdir build
+cmake ..
+make alu
+./alu
+make vector
+./vector
+```
+
+Voila!
