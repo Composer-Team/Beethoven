@@ -43,7 +43,7 @@ else:
     print("Your choice have been recorded in `composer.cfg`")
 
 if opts['backend'] == 'verilator':
-    os.system(f"cmake {cr}/Composer_Verilator -DTARGET=sim -DCMAKE_BUILD_TYPE={opts['build_type']}")
+    os.system(f"cmake {cr}/Composer-Runtime -DTARGET=sim -DCMAKE_BUILD_TYPE={opts['build_type']}")
 elif opts['backend'] == 'aws' or opts['backend'] == 'vsim' or opts['backend'] == 'sanity':
     aws = os.environ.get("COMPOSER_ROOT") + "/aws-fpga"
     hdk_dir = os.environ.get("HDK_DIR")
@@ -86,9 +86,7 @@ elif opts['backend'] == 'aws' or opts['backend'] == 'vsim' or opts['backend'] ==
                   f'mkdir -p verif/tests && '
                   f'cp -r {vss}/test_null.sv verif/tests/')
         vsim_tools.modify_vsim_makefile_in_place("verif/scripts/Makefile")
-        print("You are responsible for building the runtime from the Composer_Verilator repo")
-    else:
-        assert 0 == os.system(f"mkdir -p server && cd server && cmake {cr}/Composer_Verilator -DTARGET=fpga -DCMAKE_BUILD_TYPE=Debug && make && cd ..")
+        print("You are responsible for building the runtime from the Composer-Runtime repo")
 
 else:
     print("operation not recognized")
