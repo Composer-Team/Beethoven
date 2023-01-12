@@ -17,6 +17,16 @@ Mac(homebrew) Installation: (Note that these packages can be installed from sour
 brew install cmake sbt
 ```
 
+sbt requires JDK 17 or older to run, the newer versions of Java will not work.
+To check the current java version, use
+```bash
+java -version
+```
+To switch to java 17 within a specific terminal window, first [install it](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html) if it is not already installed, then use
+```bash
+JAVA_HOME=`/usr/libexec/java_home -v 17`
+```
+
 # Backends
 
 ### Verilator
@@ -101,8 +111,11 @@ Once you see "Status: Available", you're ready to flash the image onto the FPGA.
 
 Assuming you now have `cmake`, `sbt`, and `verilator`, we can run simulations of some basic examples.
 First, set up the repo. Make sure to `export COMPOSER_ROOT=` to the appropriate directory in your `.bashrc`.
+Modify your `PATH` variable as well as directed.
 
 ```shell
+git clone https://github.com/Composer-Team/Composer.git
+cd Composer/
 # inside Composer/
 ./setup.sh
 ```
@@ -157,4 +170,7 @@ make vector
 ./vector
 ```
 
-Voila!
+Voila! Shut down the simulator in the other window with a ctrl+c. Now that the run is finished, there should be a `trace.vcd`
+in the run directory. VCD waveforms can be viewed by a variety of programs and are an extremely productive debugging
+tool for hardware. [GTKWave](https://gtkwave.sourceforge.net) is a popular, open-source, cross-platform tool for viewing
+VCD waveforms.
