@@ -1,5 +1,31 @@
 import os
 from typing import List
+from enum import Enum
+
+
+# This can change from time to time, so define here and use enum instead within code
+class InterfacePrefixes:
+    slave = "S"
+    master = "M"
+    DMA = "dma"
+
+
+class PortClass(Enum):
+    Slave = 0
+    Master = 1
+    DMA = 2
+
+
+def get_class(name: str):
+    if name[:len(InterfacePrefixes.slave)] == InterfacePrefixes.slave:
+        return PortClass.Slave
+    elif name[:len(InterfacePrefixes.master)] == InterfacePrefixes.master:
+        return PortClass.Master
+    elif name[:len(InterfacePrefixes.DMA)] == InterfacePrefixes.DMA:
+        return PortClass.DMA
+    else:
+        raise Exception
+
 
 def is_number(q):
     # noinspection PyBroadException
@@ -99,11 +125,7 @@ class VerilogPort(Wire):
             return self.axi_clean_name[:self.axi_clean_name.find('_')]
 
     def get_axi_part_name(self):
-        if self.is_ddr_pin():
-            return self.axi_clean_name.split('_')[-1]
-        else:
-            spl = self.axi_clean_name.split('_')
-            return spl[-2] + spl[-1]
+        return self.axi_clean_name.split('_')[-1]
 
     def is_stat(self):
         return 'ddr' in self.axi_clean_name and 'stat' in self.axi_clean_name
@@ -429,7 +451,7 @@ def create_aws_shell():
     axi_parts = set()
     # Find unique part classes
     for pr in cl_ios:
-        if 'mem' in pr.name:
+        if 'M' in pr.name:
             axi_parts.add(pr.get_axi_part_name())
     # Initialize list where all the underlying parts will live
     for part in axi_parts:
@@ -465,23 +487,17 @@ def create_aws_shell():
         wnumber += 1
         if pr.name in ['clock', 'reset']:
             continue
-        if 'ocl' in pr.name:
-            group = 'ocl'
-        elif 'mem' in pr.name:
-            group = 'mem'
-        elif 'dma' in pr.name:
-            group = 'dma'
-        else:
-            raise Exception("Unrecognized output group")
+        pc = get_class(pr.name)
         apn = pr.get_axi_part_name()
-        wr = declare_wire_with_name(g, f"composer_{group}{wnumber}_{apn}", pr.width, pr.ar_width)
+        wr = declare_wire_with_name(g, f"composer_{pc.name}{wnumber}_{apn}", pr.width, pr.ar_width)
         # find wires in the group and fuse them together
         cl_io_wiremap.update({pr: wr})
-        if 'mem' in pr.name:
+        if get_class(pr.name) == PortClass.Master:
             a = cl_mems[pr.get_axi_part_name()]
             cl_mems[pr.get_axi_part_name()] = a + [wr]
     # Shape the parts into the same shape as the ddr ports
     ddr_axis = {}
+    testy = list(map(lambda x: x.name, ddr_ios))
     for ddr in ddr_ios:
         axi_name = ddr.get_axi_part_name()
         if ddr.is_ddr_pin():
@@ -545,12 +561,13 @@ def create_aws_shell():
                     else:
                         ddr_wire[i].assign(g, port)
 
-    # Connect the OCL AXIL ports
+    # Connect the Slave AXIL ports
     for clio in cl_io_wiremap.keys():
         wi = cl_io_wiremap[clio]
-        if not 'ocl' in clio.name:
+        pc = get_class(clio.name)
+        if pc != PortClass.Slave:
             continue
-        p = search_for_part(clio.get_axi_part_name(), 'ocl', shell_ports)
+        p = search_for_part(clio.get_axi_part_name(), "ocl", shell_ports)
         if len(p) == 0:
             if clio.input:
                 wi.tie_off(g)
@@ -614,7 +631,6 @@ def create_aws_shell():
         if port.name in reserved_ddr_wires:
             g.write(f".{port.name}({reserved_ddr_map[port].name}),\n")
             continue
-
         fuse = ddr_axis[port.get_axi_part_name()]
         assert fuse is not None
         g.write(f".{port.name}({fuse.name}),\n")
