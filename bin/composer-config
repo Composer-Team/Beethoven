@@ -56,8 +56,8 @@ elif opts['backend'] == 'aws' or opts['backend'] == 'vsim' or opts['backend'] ==
 
     path = f"{hdk_dir}/common/shell_stable/new_cl_template/"
     # copy cl template
-    os.system(f"cp -rL {path}/build . && mkdir -p design && mv composer_aws.sv design/ &&"
-              f" cp generated-src/composer.v design/")
+    os.system(f"cp -rL {path}/build . && mkdir -p design && mv composer_aws.sv design/")
+    aws_tools.move_sources_to_design()
     # copy in the cl_dram_dma constraints over it
     os.system(f"cp {hdk_dir}/cl/examples/cl_dram_dma/build/constraints/* build/constraints/")
 

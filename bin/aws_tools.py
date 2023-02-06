@@ -16,6 +16,10 @@ class PortClass(Enum):
     DMA = 2
 
 
+def get_fp_sources():
+    files = list(os.walk(f"{os.environ['COMPOSER_ROOT']}/Composer-Hardware/.fpnew_cache/"))[0][2]
+    return list(filter(lambda x: ('yosys' not in x) and ('preprocessed' not in x) and ('.v' in x) and ('filtered' not in x), files))
+
 def get_class(name: str):
     if name[:len(InterfacePrefixes.slave)] == InterfacePrefixes.slave:
         return PortClass.Slave
@@ -317,6 +321,9 @@ def scrape_cl_ports():
             else:
                 lns.append(ln)
     return scrape_ports_from_lines(lns)
+
+
+
 
 
 def scrape_sh_ddr_ports():
@@ -694,7 +701,8 @@ def write_encrypt_script_from_base_inline(fname, ):
         lns = f.readlines()
     to_write = ["file copy -force $CL_DIR/design/composer_aws.sv $TARGET_DIR\n",
                 "file copy -force $CL_DIR/design/composer.v $TARGET_DIR\n",
-                "file copy -force $CL_DIR/design/cl_id_defines.vh $TARGET_DIR\n"]
+                "file copy -force $CL_DIR/design/cl_id_defines.vh $TARGET_DIR\n"] +\
+               [f"file copy -force $CL_DIR/design/{x} $TARGET_DIR\n" for x in get_fp_sources()]
     with open(fname, 'w') as f:
         for ln in lns:
             if "file copy" in ln:
@@ -728,3 +736,10 @@ def create_synth_script(oname):
 
 def create_dcp_script_inline(fname):
     os.system(f"sed -i.bu 's/cl_hello_world/composer_aws/g' {fname}")
+
+
+def move_sources_to_design():
+    os.system(f"cp generated-src/composer.v design/")
+    for src in get_fp_sources():
+        os.system(f"cp {os.environ['COMPOSER_ROOT']}/Composer-Hardware/.fpnew_cache/{src} design/")
+
