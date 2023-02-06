@@ -72,7 +72,8 @@ elif opts['backend'] == 'aws' or opts['backend'] == 'vsim' or opts['backend'] ==
 
     aws_tools.create_dcp_script_inline("build/scripts/create_dcp_from_cl.tcl")
 
-    os.system('sed -i -E "s/\"vivado /\"vivado -stack 1500 /" build/scripts/aws_build_dcp_from_cl.sh')
+    # TODO fix - emits warning on linux
+    # os.system('sed -i -E "s/\"vivado /\"vivado -stack 1500 /" build/scripts/aws_build_dcp_from_cl.sh')
     if opts['backend'] == 'vsim' or opts['backend'] == 'sanity':
         pwd = os.getcwd()
         vss = os.environ["COMPOSER_ROOT"] + "/bin/vsim_src"

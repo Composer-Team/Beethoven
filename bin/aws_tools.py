@@ -720,6 +720,8 @@ def create_synth_script(oname):
             elif "*.?v" in ln:
                 idx = ln.find("*.?v")
                 g.write(ln[:idx] + "*v" + ln[idx + 4:])
+            elif "close_project" in ln:
+                g.write("report_power -file power_report.txt\n" + ln)
             else:
                 g.write(ln)
 
