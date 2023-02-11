@@ -17,8 +17,13 @@ class PortClass(Enum):
 
 
 def get_fp_sources():
-    files = list(os.walk(f"{os.environ['COMPOSER_ROOT']}/Composer-Hardware/.fpnew_cache/"))[0][2]
-    return list(filter(lambda x: ('yosys' not in x) and ('preprocessed' not in x) and ('.v' in x) and ('filtered' not in x), files))
+    if os.path.exists(f"{os.environ['COMPOSER_ROOT']}/Composer-Hardware/.fpnew_cache"):
+        files = list(os.walk(f"{os.environ['COMPOSER_ROOT']}/Composer-Hardware/.fpnew_cache/"))[0][2]
+        return list(filter(lambda x: ('yosys' not in x) and ('preprocessed' not in x) and ('.v' in x) and
+                                     ('filtered' not in x), files))
+    else:
+        return list()
+
 
 def get_class(name: str):
     if name[:len(InterfacePrefixes.slave)] == InterfacePrefixes.slave:
