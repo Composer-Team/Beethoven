@@ -734,7 +734,7 @@ def create_synth_script(oname):
                 idx = ln.find("*.?v")
                 g.write(ln[:idx] + "*v" + ln[idx + 4:])
             elif "close_project" in ln:
-                g.write("report_power -file power_report.txt\n" + ln)
+                g.write("report_power -file power_report.txt\nreport_utilization -hierarchical -file utilization_report.txt\n" + ln)
             else:
                 g.write(ln)
 
