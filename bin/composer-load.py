@@ -26,7 +26,7 @@ images = json.load(proc)['FpgaImages']
 names = [i['Name'] for i in images]
 
 for idx, nm in enumerate(names):
-    print(f"\t[{idx}] - {nm}")
+    print(f"\t[{idx}] - {nm} - Availability: {images[idx]['State']['Code']}")
 
 choice = int(input("Select an image to load\n"))
 chosen_name = names[choice]
