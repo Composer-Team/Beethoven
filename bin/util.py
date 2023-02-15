@@ -17,6 +17,6 @@ def get_config():
         f.write(json.dumps(my_dict))
         f.close()
 
-    with open(".aws-cache/config.txt") as f:
+    with open(f"{aws_cache}/config.txt") as f:
         d = json.load(f)
         return d
