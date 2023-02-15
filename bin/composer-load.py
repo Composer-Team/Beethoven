@@ -13,8 +13,6 @@ if os.environ.get('COMPOSER_ROOT') is None:
 
 os.system("sudo killall ComposerRuntime")
 
-aws_cache = os.environ['COMPOSER_ROOT'] + "/.aws-cache"
-
 config = util.get_config()
 
 # Make sure that xdma is setup and working, otherwise set it up
