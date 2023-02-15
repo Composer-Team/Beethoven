@@ -2,12 +2,17 @@
 
 import os
 import json
-
+import sys
+import util
 # Make sure that Composer directory exists
 if os.environ.get('COMPOSER_ROOT') is None:
     print("You must define the $COMPOSER_ROOT environment variable. We expect it to be the top-level of the"
           " Composer repo.")
     exit(1)
+
+aws_cache = os.environ['COMPOSER_ROOT'] + "/.aws-cache"
+
+config = util.get_config()
 
 # Make sure that xdma is setup and working, otherwise set it up
 xdmas = list(os.walk("/dev"))[0][2]

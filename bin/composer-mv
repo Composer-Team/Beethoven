@@ -3,6 +3,7 @@
 import os
 import sys
 from functools import reduce
+import util
 
 help_message = """Composer AWS build mover
 
@@ -19,17 +20,7 @@ if "--help" in sys.argv:
     print(help_message)
     exit(0)
 
-if not os.path.exists(".aws-cache/config.txt") or ("--reset_cache" in sys.argv):
-    os.system("mkdir -p .aws-cache/")
-    f = open(".aws-cache/config.txt", 'w')
-    region = input("What AWS region to use?\n")
-    f.write(f"region {region}\n")
-    f.close()
-else:
-    f = open(".aws-cache/config.txt")
-    lns = f.readlines()
-    f.close()
-    region = lns[0].split(" ")[1].strip()
+config = util.get_config()
 
 gen_root = os.environ["COMPOSER_ROOT"] + "/Composer-Hardware/vsim"
 gen_src = gen_root + "/generated-src"
@@ -70,19 +61,18 @@ if not has_success:
 # Else we passed timing, and we can actually build it
 name = input("Beginning to build final image. Give this run a key so you can identify it on the FPGA system.\n").strip()
 timing_prefix = timing.split(".")[0]
-assert 0 == os.system("aws s3 mb s3://composer --region " + region)
-assert 0 == os.system("aws s3 mb s3://composer/logs")
-assert 0 == os.system("aws s3 mb s3://composer/tars")
-assert 0 == os.system("aws s3 mb s3://composer/headers")
-os.system(f"aws s3 cp {checkpoints}/{timing_prefix}.Developer_CL.tar s3://composer/tars/{name}.tar")
-os.system(f"aws s3 cp {gen_src}/composer_allocator_declaration.h s3://composer/headers/{name}.h")
-assert 0 == os.system(f"aws s3 cp {gen_src}/composer_allocator_declaration.h s3://composer/{name}.h")
+s3_name = f"composer-{config['username']}"
+assert 0 == os.system(f"aws s3 mb s3://{s3_name} --region {config['region']}")
+assert 0 == os.system(f"aws s3 mb s3://{s3_name}/logs")
+assert 0 == os.system(f"aws s3 mb s3://{s3_name}/tars")
+assert 0 == os.system(f"aws s3 mb s3://{s3_name}/headers")
+os.system(f"aws s3 cp {checkpoints}/{timing_prefix}.Developer_CL.tar s3://{s3_name}/tars/{name}.tar")
+os.system(f"aws s3 cp {gen_src}/composer_allocator_declaration.h s3://{s3_name}/headers/{name}.h")
+assert 0 == os.system(f"aws s3 cp {gen_src}/composer_allocator_declaration.h s3://{s3_name}/{name}.h")
 
-assert 0 == os.system(f'aws ec2 create-fpga-image --region {region} --name {name}'
+assert 0 == os.system(f'aws ec2 create-fpga-image --region {config["region"]} --name {name}'
                       f' --description "{name}" --input-storage-location Bucket=composer,Key=tars/{name}.tar'
-                      f' --logs-storage-location Bucket=composer,Key=logs/')
-
-assert 0 == os.system(f"aws s3 ")
+                      f' --logs-storage-location Bucket={s3_name},Key=logs/')
 
 print("Your AFI should be building...\n"
       "You can check its progress by running `aws ec2 describe-fpga-images --owner self`")
