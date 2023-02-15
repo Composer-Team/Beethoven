@@ -34,7 +34,7 @@ walk = list(os.walk(reports))[0][2]
 timings = list(filter(lambda x: "SH_CL_final_timing_summary.rpt" in x, walk))
 if len(timings) > 1:
     print("Multiple builds found in output directory. Please choose the one you'd like to move.")
-    for i, t in timings:
+    for i, t in enumerate(timings):
         print(f"[{i}] {t}")
     answer = input("Select which one you'd like. [Default: newest build]\n")
     if answer == "":
