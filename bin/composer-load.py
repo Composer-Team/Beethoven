@@ -1,15 +1,14 @@
-
+#!/usr/bin/python3
 
 import os
 import sys
 import json
 import subprocess
 
-proc = subprocess.Popen(["aws", "ec2", "describe-fpga-images", "--owner", "self"], stdout=subprocess.PIPE, shell=True)
-(out, err) = proc.communicate()
+# aws ec2 describe-fpga-images --owner self
+proc = os.popen("aws ec2 describe-fpga-images --owner self")
+images = json.load(proc)
+#print(images['FpgaImages'])
+print([i['Name'] for i in images['FpgaImages']])
 
-strout = out.decode("utf-8")
-images = json.load(strout)
-
-print(images)
 
