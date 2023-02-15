@@ -74,7 +74,7 @@ cmd = f'aws ec2 create-fpga-image --region {config["region"]} --name {name} --de
       f'--input-storage-location Bucket=composer,Key=tars/{name}.tar --logs-storage-location Bucket={s3_name},Key=logs/'
 print(cmd)
 assert 0 == os.system(f'aws ec2 create-fpga-image --region {config["region"]} --name {name}'
-                      f' --description "{name}" --input-storage-location Bucket=composer,Key=tars/{name}.tar'
+                      f' --description "{name}" --input-storage-location Bucket={s3_name},Key=tars/{name}.tar'
                       f' --logs-storage-location Bucket={s3_name},Key=logs/')
 
 print("Your AFI should be building...\n"
