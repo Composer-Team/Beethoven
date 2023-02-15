@@ -41,7 +41,7 @@ os.system(f"aws s3 cp s3://{s3_name}/headers/{chosen_name}.h "
 os.system(f"cd {os.environ['COMPOSER_ROOT']}/Composer-Runtime/ && mkdir -p build && "
           f" cd build && cmake .. -DTARGET=fpga -DBACKEND=F1")
 f = open(f"{os.environ['COMPOSER_ROOT']}/Composer-Runtime/build/runtime_output.txt", 'w')
-proc = subprocess.Popen(["nohup", f"{os.environ['COMPOSER_ROOT']}/Composer-Runtime/build/ComposerRuntime", "&", "disown"],
+proc = subprocess.Popen(["sudo", "nohup", f"{os.environ['COMPOSER_ROOT']}/Composer-Runtime/build/ComposerRuntime", "&", "disown"],
                         stdout=f, close_fds=False)
 print(f"Image is loaded and runtime output is being piped to "
       f"{os.environ['COMPOSER_ROOT']}/Composer-Runtime/build/runtime_output.txt")
