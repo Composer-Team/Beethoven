@@ -24,8 +24,17 @@ for idx, nm in enumerate(names):
     print(f"\t[{idx}] - {nm}")
 
 choice = int(input("Select an image to load\n"))
+chosen_name = names[choice]
 assert len(names) > choice >= 0
 os.system("sudo fpga-load-local-image -S 0 -I " + str(images[choice]['FpgaImageGlobalId']))
+
+# Load Composer Runtime now
+os.system(f"aws s3 cp s3://composer/headers/{chosen_name}.h "
+          f"{os.environ['COMPOSER_ROOT']}/Composer-Hardware/vsim/generated-src/composer_allocator_declaration.h")
+os.system(f"cd {os.environ['COMPOSER_ROOT']}/Composer-Runtime/ && mkdir -p build && cd build && cmake .. -DTARGET=fpga"
+          f" && make && nohup ./ComposerRuntime > runtime_output.txt")
+print(f"Image is loaded and runtime output is being piped to "
+      f"{os.environ['COMPOSER_ROOT']}/Composer-Runtime/build/runtime_output.txt")
 
 
 
