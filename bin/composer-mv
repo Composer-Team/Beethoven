@@ -70,6 +70,9 @@ os.system(f"aws s3 cp {checkpoints}/{timing_prefix}.Developer_CL.tar s3://{s3_na
 os.system(f"aws s3 cp {gen_src}/composer_allocator_declaration.h s3://{s3_name}/headers/{name}.h")
 assert 0 == os.system(f"aws s3 cp {gen_src}/composer_allocator_declaration.h s3://{s3_name}/{name}.h")
 
+cmd = f'aws ec2 create-fpga-image --region {config["region"]} --name {name} --description "{name}" ' \
+      f'--input-storage-location Bucket=composer,Key=tars/{name}.tar --logs-storage-location Bucket={s3_name},Key=logs/'
+print(cmd)
 assert 0 == os.system(f'aws ec2 create-fpga-image --region {config["region"]} --name {name}'
                       f' --description "{name}" --input-storage-location Bucket=composer,Key=tars/{name}.tar'
                       f' --logs-storage-location Bucket={s3_name},Key=logs/')
