@@ -40,6 +40,7 @@ if len(timings) > 1:
     if answer == "":
         timings.sort()
         timing = timings[-1]
+        print("selected " + timing)
     else:
         idx = int(answer.strip())
         if idx < 0 or idx >= len(timings):
