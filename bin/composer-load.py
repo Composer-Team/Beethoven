@@ -2,6 +2,7 @@
 
 import os
 import json
+import subprocess
 import sys
 import util
 # Make sure that Composer directory exists
@@ -37,8 +38,11 @@ s3_name = f"composer-{config['username']}"
 # Load Composer Runtime now
 os.system(f"aws s3 cp s3://{s3_name}/headers/{chosen_name}.h "
           f"{os.environ['COMPOSER_ROOT']}/Composer-Hardware/vsim/generated-src/composer_allocator_declaration.h")
-os.system(f"cd {os.environ['COMPOSER_ROOT']}/Composer-Runtime/ && mkdir -p build && cd build && cmake .. -DTARGET=fpga -DBACKEND=F1"
-          f" && make && sudo nohup ./ComposerRuntime > runtime_output.txt")
+os.system(f"cd {os.environ['COMPOSER_ROOT']}/Composer-Runtime/ && mkdir -p build && "
+          f" cd build && cmake .. -DTARGET=fpga -DBACKEND=F1")
+f = open(f"{os.environ['COMPOSER_ROOT']}/Composer-Runtime/build/runtime_output.txt", 'w')
+proc = subprocess.Popen(["nohup", f"{os.environ['COMPOSER_ROOT']}/Composer-Runtime/build/ComposerRuntime", "&", "disown"],
+                        stdout=f, close_fds=False)
 print(f"Image is loaded and runtime output is being piped to "
       f"{os.environ['COMPOSER_ROOT']}/Composer-Runtime/build/runtime_output.txt")
 
