@@ -11,6 +11,8 @@ if os.environ.get('COMPOSER_ROOT') is None:
           " Composer repo.")
     exit(1)
 
+os.system("sudo killall ComposerRuntime")
+
 aws_cache = os.environ['COMPOSER_ROOT'] + "/.aws-cache"
 
 config = util.get_config()
