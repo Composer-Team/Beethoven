@@ -38,7 +38,8 @@ if len(timings) > 1:
         print(f"[{i}] {t}")
     answer = input("Select which one you'd like. [Default: newest build]\n")
     if answer == "":
-        timing = timings.sort()[-1]
+        timings.sort()
+        timing = timings[-1]
     else:
         idx = int(answer.strip())
         if idx < 0 or idx >= len(timings):
