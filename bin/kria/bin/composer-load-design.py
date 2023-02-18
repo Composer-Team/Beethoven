@@ -19,7 +19,7 @@ os.system(f"sudo mkdir -p {lib_d} && sudo cp {chosen_d}/{chosen_name}.dtbo {lib_
           f"sudo cp {chosen_d}/{chosen_name}.bit.bin {lib_d}/ && "
           f"mkdir -p {os.environ['COMPOSER_ROOT']}/Composer-Hardware/vsim/generated-src/ && "
           f"cp {chosen_d}/composer_allocator_declaration.h {os.environ['COMPOSER_ROOT']}/Composer-Hardware/vsim/generated-src/ && "
-          f"sudo cp {os.environ['HOME']}/bin/default_shell.json {lib_d}")
+          f"sudo cp {os.environ['HOME']}/bin/default_shell.json {lib_d}/shell.json")
 
 os.system(f"sudo dfx-mgr-client -remove && sudo dfx-mgr-client -load {chosen_name}")
 os.system(f"cd {os.environ['COMPOSER_ROOT']}/Composer-Runtime/ && mkdir -p build && "
