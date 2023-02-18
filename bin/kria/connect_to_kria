@@ -1,0 +1,3 @@
+#!/bin/bash
+
+ssh petalinux@$KRIA_IP

@@ -6,6 +6,11 @@ import os
 Prepare files for flashing on the FPGA
 """
 
+if os.environ.get('KRIA_IP') is None:
+    print("Please define KRIA_IP environment variable")
+
+kria_ip = os.environ['KRIA_IP']
+
 name = input("Provide name of design: ").strip()
 
 os.system("mkdir -p ~/.composer-cache/ && cd ~/.composer-cache/ && git clone -q "
@@ -23,10 +28,10 @@ with open("bootgen.bif", 'w') as f:
     f.write("all:{" + name + ".bit}")
 
 os.system(f"bootgen -w -arch zynqmp -process_bitstream bin -image bootgen.bif && "
-          f"ssh petalinux@kria-fpga.cs.duke.edu mkdir -p designs/{name}/ &&"
-          f"scp {name}.bit.bin petalinux@kria-fpga.cs.duke.edu:~/designs/{name}/ && "
-          f"scp {name}.dtbo petalinux@kria-fpga.cs.duke.edu:~/designs/{name} &&"
+          f"ssh petalinux@{kria_ip} mkdir -p designs/{name}/ &&"
+          f"scp {name}.bit.bin petalinux@{kria_ip}:~/designs/{name}/ && "
+          f"scp {name}.dtbo petalinux@{kria_ip}:~/designs/{name} &&"
           f"scp {os.environ['COMPOSER_ROOT']}/Composer-Hardware/vsim/generated-src/composer_allocator_declaration.h "
-          f"petalinux@kria-fpga.cs.duke.edu:~/designs/{name}")
+          f"petalinux@{kria_ip}:~/designs/{name}")
 
 
