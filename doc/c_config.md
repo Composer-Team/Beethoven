@@ -372,7 +372,7 @@ class FlatPackScratchpadParams extends CScratchpadSpecialization
 ```
 
 - `name` - scratchpad name
-- `supportWriteback` - Allow the scratchpad to automatically write back contents to memory. MUST PROVIDE `false`, don't currently support `true`.
+- `supportWriteback` - Allow the user to write contents into the scratchpad from the write ports within access IO.
 - `dataWidthBits` - width of a scratchpad access in bits
 - `nDatas` - number of elements in scratchpad
 - `latency` - latency of scratchpad access. Supports 1 or 2.
@@ -382,9 +382,6 @@ class FlatPackScratchpadParams extends CScratchpadSpecialization
 - `specialization` - due to the specialized nature of custom logic, data may be packed in memory very tightly. Currently
   support `PackedSubwordScratchpadParams` and `FlatPackScratchpadParams` detailed above.
 
-
-    - `memAddr` - beginning of access in memory
-    - `scAddr` - beginning index of scratchpad associated with memory region
-    - `len` - length of memory access in bytes
+See [here](c_scratchpad.md) for description of IOs.
 
 [Go to next (Software Development)](c_software.md)
