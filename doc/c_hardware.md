@@ -8,7 +8,7 @@
 - [Memory Subsystem](c_memory.md)
     - [Readers](c_readers.md)
     - [Writers](c_writers.md)
-    - [Scratchpad]()
+    - [Scratchpad](c_scratchpad.md)
 - [Accelerator Configuration]()
 
 ## Introduction
