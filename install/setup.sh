@@ -13,7 +13,7 @@ cd $COMPOSER_ROOT
 
 git clone -q "$prefix"Composer-Team/Composer-Hardware.git && cd Composer-Hardware && chmod u+x scripts/setup.sh && ./scripts/setup.sh && cd ..
 git clone -q "$prefix"Composer-Team/Composer-Software.git && cd Composer-Software && cd ..
-git clone --recursive -q "$prefix"Composer-Team/Composer-Runtime.git && cd Composer-Runtime cd ..
+git clone --recursive -q "$prefix"Composer-Team/Composer-Runtime.git && cd Composer-Runtime && cd ..
 git clone -q "$prefix"Composer-Team/Composer-Examples.git
 
 echo ""
