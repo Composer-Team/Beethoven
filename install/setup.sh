@@ -11,7 +11,7 @@ fi
 cp -r bin $COMPOSER_ROOT/
 cd $COMPOSER_ROOT
 
-git clone -q "$prefix"Composer-Team/Composer-Hardware.git
+# git clone -q "$prefix"Composer-Team/Composer-Hardware.git
 git clone -q "$prefix"Composer-Team/Composer-Software.git
 git clone --recursive -q "$prefix"Composer-Team/Composer-Runtime.git
 git clone -q "$prefix"Composer-Team/Composer-Examples.git
