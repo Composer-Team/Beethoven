@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import os
-import sys
 
 opts = list(os.walk(f"{os.environ['HOME']}/designs/"))[0][1]
 
@@ -26,5 +25,3 @@ os.system(f"cd {os.environ['COMPOSER_ROOT']}/Composer-Runtime/ && mkdir -p build
           f"cd build && cmake .. -DTARGET=fpga -DBACKEND=Kria && make && nohup ./ComposerRuntime &> runtime.log")
 
 print(f"Runtime should now be running and logging to {os.environ['COMPOSER_ROOT']}/Composer-Runtime/build/runtime.log")
-
-
