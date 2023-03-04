@@ -1,6 +1,6 @@
 FROM ubuntu:latest
 
-RUN apt-get update && apt-get install cmake g++ gcc git wget -y
+RUN apt-get update && apt-get install cmake g++ gcc git wget gcc-8 -y
 # Almost certainly insecure but I'll remove this when it becomes convenient
 ENV COMPOSER_ROOT=/home/ubuntu/Composer
 RUN mkdir -p /home/ubuntu/Composer
