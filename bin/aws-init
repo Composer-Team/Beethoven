@@ -1,0 +1,22 @@
+#!/usr/bin/python3
+import os
+
+print("""This script is intended to be ran the first time you set up an AWS EC2 compile instance.
+ We attempt to minimize the amount of development that happens on the Amazon side. We intend for development to
+ happen locally and then intermediate objects are moved over to the instance where they can be built into a tarball.
+ This should minimize the amount of time spent setting up keys and compile infrastructure.""")
+
+ip = input("Enter AWS IP:")
+
+os.system(f"ssh-copy-id ec2-user@{ip}")
+
+
+def remote_cmd(str):
+    global ip
+    os.system(f"ssh ec2-user@{ip} {str}")
+
+
+os.system(f"cd {os.environ['COMPOSER_ROOT']} && tar -czf tmp.tgz bin && scp tmp.tgz ec2-user@{ip}:~/ && rm tmp.tgz")
+remote_cmd("tar -xzf tmp.tgz")
+remote_cmd("rm tmp.tgz")
+remote_cmd("bash bin/aws-scripts/initial_setup.sh")

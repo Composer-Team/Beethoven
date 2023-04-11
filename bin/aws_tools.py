@@ -3,6 +3,9 @@ from typing import List
 from enum import Enum
 
 
+HOME=os.environ['HOME']
+
+
 # This can change from time to time, so define here and use enum instead within code
 class InterfacePrefixes:
     slave = "S"
@@ -14,16 +17,6 @@ class PortClass(Enum):
     Slave = 0
     Master = 1
     DMA = 2
-
-
-def get_fp_sources():
-    if os.path.exists(f"{os.environ['COMPOSER_ROOT']}/Composer-Hardware/.fpnew_cache"):
-        files = list(os.walk(f"{os.environ['COMPOSER_ROOT']}/Composer-Hardware/.fpnew_cache/"))[0][2]
-        return list(filter(lambda x: ('yosys' not in x) and ('preprocessed' not in x) and ('.v' in x) and
-                                     ('filtered' not in x), files))
-    else:
-        return list()
-
 
 def get_class(name: str):
     if name[:len(InterfacePrefixes.slave)] == InterfacePrefixes.slave:
@@ -302,12 +295,12 @@ def scrape_ports_from_lines(lns):
 
 
 def scrape_aws_ports():
-    with open(f"{os.environ['COMPOSER_ROOT']}/aws-fpga/hdk/common/shell_stable/design/interfaces/cl_ports.vh") as f:
+    with open(f"{HOME}/aws-fpga/hdk/common/shell_stable/design/interfaces/cl_ports.vh") as f:
         return scrape_ports_from_lines(f.readlines())
 
 
 def scrape_cl_ports():
-    ct = open(f"{os.environ.get('COMPOSER_ROOT')}/Composer-Hardware/vsim/generated-src/composer.v")
+    ct = open(f"{HOME}/build-dir/generated-src/composer.v")
     lns = []
     state = 0
     for ln in ct.readlines():
@@ -332,14 +325,14 @@ def scrape_cl_ports():
 
 
 def scrape_sh_ddr_ports():
-    with open(f"{os.environ['COMPOSER_ROOT']}/aws-fpga/hdk/common/shell_stable/design/sh_ddr/sim/sh_ddr.sv") as f:
+    with open(f"{HOME}/aws-fpga/hdk/common/shell_stable/design/sh_ddr/sim/sh_ddr.sv") as f:
         lns = f.readlines()[45:]
         return scrape_ports_from_lines(lns)
 
 
 def get_num_ddr_channels():
     with open(
-            f"{os.environ['COMPOSER_ROOT']}/Composer-Hardware/vsim/generated-src/composer_allocator_declaration.h") as f:
+            f"{HOME}/build-dir/generated-src/composer_allocator_declaration.h") as f:
         lns = f.readlines()
         for ln in lns:
             if "NUM_DDR_CHANNELS" in ln:
@@ -705,9 +698,9 @@ def write_encrypt_script_from_base_inline(fname, ):
     with open(fname) as f:
         lns = f.readlines()
     to_write = ["file copy -force $CL_DIR/design/composer_aws.sv $TARGET_DIR\n",
-                "file copy -force $CL_DIR/design/composer.v $TARGET_DIR\n",
                 "file copy -force $CL_DIR/design/cl_id_defines.vh $TARGET_DIR\n"] +\
-               [f"file copy -force $CL_DIR/design/{x} $TARGET_DIR\n" for x in get_fp_sources()]
+               [f"file copy -force $CL_DIR/design/{x} $TARGET_DIR\n"
+                for x in list(os.walk(f"{HOME}/build-dir/generated-src/"))[0][2]]
     with open(fname, 'w') as f:
         for ln in lns:
             if "file copy" in ln:
@@ -723,7 +716,7 @@ def write_encrypt_script_from_base_inline(fname, ):
 
 
 def create_synth_script(oname):
-    with open(f"{os.environ['COMPOSER_ROOT']}/aws-fpga/hdk/cl/examples/cl_dram_dma/build/scripts/"
+    with open(f"{HOME}/aws-fpga/hdk/cl/examples/cl_dram_dma/build/scripts/"
               f"synth_cl_dram_dma.tcl") as f:
         lns = f.readlines()
     with open(oname, 'w') as g:
@@ -744,7 +737,4 @@ def create_dcp_script_inline(fname):
 
 
 def move_sources_to_design():
-    os.system(f"cp generated-src/composer.v design/")
-    for src in get_fp_sources():
-        os.system(f"cp {os.environ['COMPOSER_ROOT']}/Composer-Hardware/.fpnew_cache/{src} design/")
-
+    os.system(f"cp generated-src/* design/")

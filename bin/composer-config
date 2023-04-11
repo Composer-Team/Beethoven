@@ -4,11 +4,6 @@ import aws_tools
 import vsim_tools
 import sys
 
-cr = os.environ.get("COMPOSER_ROOT")
-if cr is None:
-    print("COMPOSER_ROOT appears to not be defined in your environment. Please define.")
-    exit(1)
-
 opts = {}
 if os.path.exists("composer.cfg") and not "--force" in sys.argv:
     with open("composer.cfg") as f:
@@ -18,18 +13,10 @@ if os.path.exists("composer.cfg") and not "--force" in sys.argv:
 else:
     opt = input("'composer.cfg' file not found.\n"
                 "Which backend?\n"
-                "0 - Verilator (Simulation)\n"
                 "1 - AWS FPGA\n"
                 "2 - XSIM (Simulation of AWS Shell using Xilinx Vivado XSIM) - SLOW!\n"
                 "3 - sanity\n").strip()
-    if opt == '0':
-        opt = 'verilator'
-        build_type = input("[Debug]/Release?\n")
-        if build_type == "":
-            build_type = "Debug"
-        assert build_type in ["Debug", "Release"]
-        opts.update({"build_type": build_type})
-    elif opt == '1':
+    if opt == '1':
         opt = 'aws'
     elif opt == '2':
         opt = 'vsim'
@@ -42,53 +29,47 @@ else:
         f.write(f"backend {opt}\n")
     print("Your choice have been recorded in `composer.cfg`")
 
-if opts['backend'] == 'verilator':
-    os.system(f"cmake {cr}/Composer-Runtime -DTARGET=sim -DCMAKE_BUILD_TYPE={opts['build_type']}")
-elif opts['backend'] == 'aws' or opts['backend'] == 'vsim' or opts['backend'] == 'sanity':
-    aws = os.environ.get("COMPOSER_ROOT") + "/aws-fpga"
-    hdk_dir = os.environ.get("HDK_DIR")
-    if hdk_dir is None:
-        print("HDK_DIR not set. This is usually set as part of aws-fpga setup. "
-              "Please source hdk_setup.sh in the aws-fpga repo before running this.")
-        hdk_dir = f"{aws}/hdk"
-        os.environ["HDK_DIR"] = hdk_dir
-    aws_tools.create_aws_shell()
+aws = "~/aws-fpga"
+hdk_dir = os.environ.get("HDK_DIR")
+if hdk_dir is None:
+    print("HDK_DIR not set. This is usually set as part of aws-fpga setup. "
+          "Please source hdk_setup.sh in the aws-fpga repo before running this.")
+    hdk_dir = f"{aws}/hdk"
+    os.environ["HDK_DIR"] = hdk_dir
+aws_tools.create_aws_shell()
 
-    path = f"{hdk_dir}/common/shell_stable/new_cl_template/"
-    # copy cl template
-    os.system(f"cp -rL {path}/build . && mkdir -p design && mv composer_aws.sv design/")
-    aws_tools.move_sources_to_design()
-    # copy in the cl_dram_dma constraints over it
-    os.system(f"cp {hdk_dir}/cl/examples/cl_dram_dma/build/constraints/* build/constraints/")
+path = f"{hdk_dir}/common/shell_stable/new_cl_template/"
+# copy cl template
+os.system(f"cp -rL {path}/build . && mkdir -p design && mv composer_aws.sv design/")
+aws_tools.move_sources_to_design()
+# copy in the cl_dram_dma constraints over it
+os.system(f"cp {hdk_dir}/cl/examples/cl_dram_dma/build/constraints/* build/constraints/")
 
-    aws_tools.write_id_defines()
+aws_tools.write_id_defines()
 
-    aws_tools.write_encrypt_script_from_base_inline("build/scripts/encrypt.tcl")
-    os.system("mkdir -p build/checkpoints && mkdir -p build/reports")
+aws_tools.write_encrypt_script_from_base_inline("build/scripts/encrypt.tcl")
+os.system("mkdir -p build/checkpoints && mkdir -p build/reports")
 
-    aws_tools.create_synth_script("build/scripts/synth_composer_aws.tcl")
+aws_tools.create_synth_script("build/scripts/synth_composer_aws.tcl")
 
-    tcl_name = "build/scripts/synth_composer_aws.tcl"
+tcl_name = "build/scripts/synth_composer_aws.tcl"
 
-    aws_tools.create_dcp_script_inline("build/scripts/create_dcp_from_cl.tcl")
+aws_tools.create_dcp_script_inline("build/scripts/create_dcp_from_cl.tcl")
 
-    # TODO fix - emits warning on linux
-    # os.system('sed -i -E "s/\"vivado /\"vivado -stack 1500 /" build/scripts/aws_build_dcp_from_cl.sh')
-    if opts['backend'] == 'vsim' or opts['backend'] == 'sanity':
-        pwd = os.getcwd()
-        vss = os.environ["COMPOSER_ROOT"] + "/bin/vsim_src"
-        hlw = os.environ["COMPOSER_ROOT"] + "/aws-fpga/hdk/cl/examples/cl_hello_world/verif/scripts"
-        os.system(f'mkdir -p software/runtime && mkdir -p verif/scripts && '
-                  f'cp {vss}/vivado_test.c software/runtime && '
-                  f'cp {hlw}/Makefile verif/scripts && '
-                  f'cp {vss}/vivado_top verif/scripts/top.vivado.f && '
-                  f'cp {vss}/Makefile.vivado verif/scripts/ &&'
-                  f'cp {vss}/waves.tcl verif/scripts/ && '
-                  f'mkdir -p verif/tests && '
-                  f'cp -r {vss}/test_null.sv verif/tests/')
-        vsim_tools.modify_vsim_makefile_in_place("verif/scripts/Makefile")
-        print("You are responsible for building the runtime from the Composer-Runtime repo")
-
-else:
-    print("operation not recognized")
+# TODO fix - emits warning on linux
+# os.system('sed -i -E "s/\"vivado /\"vivado -stack 1500 /" build/scripts/aws_build_dcp_from_cl.sh')
+if opts['backend'] == 'vsim' or opts['backend'] == 'sanity':
+    pwd = os.getcwd()
+    vss = os.environ["COMPOSER_ROOT"] + "/bin/vsim_src"
+    hlw = os.environ["COMPOSER_ROOT"] + "/aws-fpga/hdk/cl/examples/cl_hello_world/verif/scripts"
+    os.system(f'mkdir -p software/runtime && mkdir -p verif/scripts && '
+              f'cp {vss}/vivado_test.c software/runtime && '
+              f'cp {hlw}/Makefile verif/scripts && '
+              f'cp {vss}/vivado_top verif/scripts/top.vivado.f && '
+              f'cp {vss}/Makefile.vivado verif/scripts/ &&'
+              f'cp {vss}/waves.tcl verif/scripts/ && '
+              f'mkdir -p verif/tests && '
+              f'cp -r {vss}/test_null.sv verif/tests/')
+    vsim_tools.modify_vsim_makefile_in_place("verif/scripts/Makefile")
+    print("You are responsible for building the runtime from the Composer-Runtime repo")
 

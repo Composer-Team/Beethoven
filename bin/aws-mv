@@ -1,0 +1,9 @@
+#!/usr/bin/python3
+
+import sys
+import os
+
+ip = input("IP Address: ").strip()
+os.system(f'scp -r {os.environ["COMPOSER_ROOT"]}/Composer-Hardware/vsim/generated-src/*.v ec2-user@{ip}:~/build-dir/generated-src/')
+os.system(f"scp {os.environ['COMPOSER_ROOT']}/Composer-Hardware/vsim/generated-src/composer_allocator_declaration.h ec2-user@{ip}:~/build-dir/generated-src")
+
