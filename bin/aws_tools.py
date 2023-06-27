@@ -439,7 +439,7 @@ def create_synth_script(srcs):
     with open("build/scripts/synth.tcl", 'w') as o:
         src_list = ""
         for src in srcs:
-            src_list = src_list + f"\t{src} \\"
+            src_list = src_list + f"\t{src} \\n"
         whole_file = whole_file.replace("SOURCE_LIST_GOES_HERE", src_list)
         o.write(whole_file)
 
