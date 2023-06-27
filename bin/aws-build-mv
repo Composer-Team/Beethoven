@@ -8,11 +8,11 @@ import util
 help_message = """Composer AWS build mover
 
 Usage:
-composer-mv
+aws-build-mv
     Run without arguments to move build within $COMPOSER_ROOT/Composer-Hardware/ to FPGA staging
-composer-mv --help
+aws-build-mv --help
     Display this help message
-composer-mv --reset_cache
+aws-build-mv --reset_cache
     Run move script but first reset AWS configuration cache
 """
 
