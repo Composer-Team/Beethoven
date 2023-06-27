@@ -438,7 +438,7 @@ def create_synth_script(srcs):
 
     with open("build/scripts/synth.tcl", 'w') as o:
         src_list = ""
-        for src in filter((lambda x: x[:-3] == '.sv' or x[:-2] == '.v'), srcs):
+        for src in filter((lambda x: (x[:-3] == '.sv') or (x[:-2] == '.v')), map(lambda x: x.strip(), srcs)):
             src_list = src_list + f"\t{os.getcwd()}/design/{src} \\\n"
         whole_file = whole_file.replace("SOURCE_LIST_GOES_HERE", src_list)
         o.write(whole_file)
