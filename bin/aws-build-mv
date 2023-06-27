@@ -8,11 +8,11 @@ import util
 help_message = """Composer AWS build mover
 
 Usage:
-composer-mv
+aws-build-mv
     Run without arguments to move build within $COMPOSER_ROOT/Composer-Hardware/ to FPGA staging
-composer-mv --help
+aws-build-mv --help
     Display this help message
-composer-mv --reset_cache
+aws-build-mv --reset_cache
     Run move script but first reset AWS configuration cache
 """
 
@@ -22,10 +22,7 @@ if "--help" in sys.argv:
 
 config = util.get_config()
 
-gen_root = os.environ["COMPOSER_ROOT"] + "/Composer-Hardware/vsim"
-gen_src = gen_root + "/generated-src"
-
-vivado_root = gen_root + "/build/"
+vivado_root = f"{os.environ['HOME']}/build-dir/build/"
 
 # First, check that build ran correctly
 reports = vivado_root + "reports"
@@ -78,10 +75,10 @@ os.system(
     f"aws s3 cp {checkpoints}/{timing_prefix}.Developer_CL.tar s3://{s3_name}/tars/{name}.tar"
 )
 os.system(
-    f"aws s3 cp {gen_src}/composer_allocator_declaration.h s3://{s3_name}/headers/{name}.h"
+    f"aws s3 cp {os.environ['COMPOSER_ROOT']}/Composer-Hardware/vsim/generated-src/composer_allocator_declaration.h s3://{s3_name}/headers/{name}.h"
 )
 assert 0 == os.system(
-    f"aws s3 cp {gen_src}/composer_allocator_declaration.h s3://{s3_name}/{name}.h"
+    f"aws s3 cp {os.environ['COMPOSER_ROOT']}/Composer-Hardware/vsim/generated-src/composer_allocator_declaration.h s3://{s3_name}/{name}.h"
 )
 
 cmd = f'aws ec2 create-fpga-image --region {config["region"]} --name {name} --description "{name}" ' \

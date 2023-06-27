@@ -19,4 +19,4 @@ def remote_cmd(str):
 os.system(f"cd {os.environ['COMPOSER_ROOT']} && tar -czf tmp.tgz bin && scp tmp.tgz ec2-user@{ip}:~/ && rm tmp.tgz")
 remote_cmd("tar -xzf tmp.tgz")
 remote_cmd("rm tmp.tgz")
-remote_cmd("bash bin/aws-scripts/initial_setup.sh")
+remote_cmd("bash bin/aws/scripts/initial_setup.sh")

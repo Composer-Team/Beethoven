@@ -62,7 +62,7 @@ It will ask for root permissions to install XDMA kernel drivers.
 Once you have a hardware module that you want to deploy, navigate to `Composer-Hardware/vsim` and perform the following.
 ```shell
 export CL_DIR=`pwd`
-composer-config
+aws-gen-build
 # The config script will ask if you want AWS backend (1).
 # Say that you want that and then answer (y) to the next question.
 cd build/scripts

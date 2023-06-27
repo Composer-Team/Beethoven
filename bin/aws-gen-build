@@ -1,11 +1,12 @@
 #!/usr/bin/python3
-import os
 import aws_tools
+import os
 import vsim_tools
 import sys
+import util
 
 opts = {}
-if os.path.exists("composer.cfg") and not "--force" in sys.argv:
+if os.path.exists("composer.cfg") and "--force" not in sys.argv:
     with open("composer.cfg") as f:
         for ln in f.readlines():
             spl = [q.strip() for q in ln.strip().split(" ")]
@@ -39,37 +40,35 @@ if hdk_dir is None:
 aws_tools.create_aws_shell()
 
 path = f"{hdk_dir}/common/shell_stable/new_cl_template/"
+
 # copy cl template
 os.system(f"cp -rL {path}/build . && mkdir -p design && mv composer_aws.sv design/")
+os.system(f"rm -rf build/scripts/*")
 aws_tools.move_sources_to_design()
+
 # copy in the cl_dram_dma constraints over it
 os.system(f"cp {hdk_dir}/cl/examples/cl_dram_dma/build/constraints/* build/constraints/")
-
-aws_tools.write_id_defines()
-
-aws_tools.write_encrypt_script_from_base_inline("build/scripts/encrypt.tcl")
+util.append_to_file("build/constraints/cl_pnr_user.xdc", "generated-src/user_constraints.xdc")
 os.system("mkdir -p build/checkpoints && mkdir -p build/reports")
 
-aws_tools.create_synth_script("build/scripts/synth_composer_aws.tcl")
+aws_tools.write_id_defines()
+aws_tools.write_encrypt_script()
+aws_tools.create_synth_script()
+aws_tools.copy_dcp_scripts()
 
-tcl_name = "build/scripts/synth_composer_aws.tcl"
-
-aws_tools.create_dcp_script_inline("build/scripts/create_dcp_from_cl.tcl")
-
-# TODO fix - emits warning on linux
-# os.system('sed -i -E "s/\"vivado /\"vivado -stack 1500 /" build/scripts/aws_build_dcp_from_cl.sh')
-if opts['backend'] == 'vsim' or opts['backend'] == 'sanity':
-    pwd = os.getcwd()
-    vss = os.environ["COMPOSER_ROOT"] + "/bin/vsim_src"
-    hlw = os.environ["COMPOSER_ROOT"] + "/aws-fpga/hdk/cl/examples/cl_hello_world/verif/scripts"
-    os.system(f'mkdir -p software/runtime && mkdir -p verif/scripts && '
-              f'cp {vss}/vivado_test.c software/runtime && '
-              f'cp {hlw}/Makefile verif/scripts && '
-              f'cp {vss}/vivado_top verif/scripts/top.vivado.f && '
-              f'cp {vss}/Makefile.vivado verif/scripts/ &&'
-              f'cp {vss}/waves.tcl verif/scripts/ && '
-              f'mkdir -p verif/tests && '
-              f'cp -r {vss}/test_null.sv verif/tests/')
-    vsim_tools.modify_vsim_makefile_in_place("verif/scripts/Makefile")
-    print("You are responsible for building the runtime from the Composer-Runtime repo")
-
+# # TODO fix - emits warning on linux
+# # os.system('sed -i -E "s/\"vivado /\"vivado -stack 1500 /" build/scripts/aws_build_dcp_from_cl.sh')
+# if opts['backend'] == 'vsim' or opts['backend'] == 'sanity':
+#     pwd = os.getcwd()
+#     vss = os.environ["COMPOSER_ROOT"] + "/bin/vsim_src"
+#     hlw = os.environ["COMPOSER_ROOT"] + "/aws-fpga/hdk/cl/examples/cl_hello_world/verif/scripts"
+#     os.system(f'mkdir -p software/runtime && mkdir -p verif/scripts && '
+#               f'cp {vss}/vivado_test.c software/runtime && '
+#               f'cp {hlw}/Makefile verif/scripts && '
+#               f'cp {vss}/vivado_top verif/scripts/top.vivado.f && '
+#               f'cp {vss}/Makefile.vivado verif/scripts/ &&'
+#               f'cp {vss}/waves.tcl verif/scripts/ && '
+#               f'mkdir -p verif/tests && '
+#               f'cp -r {vss}/test_null.sv verif/tests/')
+#     vsim_tools.modify_vsim_makefile_in_place("verif/scripts/Makefile")
+#     print("You are responsible for building the runtime from the Composer-Runtime repo")

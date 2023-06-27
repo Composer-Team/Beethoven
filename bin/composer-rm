@@ -1,0 +1,29 @@
+#!/usr/bin/python3
+
+import os
+import json
+
+# aws ec2 describe-fpga-images --owner self
+proc = os.popen("aws ec2 describe-fpga-images --owner self")
+images = json.load(proc)['FpgaImages']
+names = [i['Name'] for i in images]
+
+for idx, nm in enumerate(names):
+    print(f"\t[{idx}] - {nm} - Availability: {images[idx]['State']['Code']}")
+
+choice = input("Select an image to delete or 'PURGE' to delete everything on S3 and all FPGA Images\n")
+
+if choice == 'PURGE':
+    if 'y' != input("Are you sure? This operation CANNOT be undone! y/[n] "):
+        print("Quiting without action")
+    proc = os.popen("aws s3 ls")
+    lns = proc.readlines()
+    for ln in lns:
+        bucket = ln.split(' ')[2]
+        os.system(f"aws s3 rm --recursive s3://{bucket}/")
+        os.system(f"aws s3 rb s3://{bucket}")
+    for image in images:
+        os.system(f"aws ec2 delete-fpga-image --fpga-image-id {image['FpgaImageId']}")
+else:
+    choice = int(choice)
+    os.system(f"aws ec2 delete-fpga-image --fpga-image-id {images[choice]['FpgaImageId']}")

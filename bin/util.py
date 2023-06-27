@@ -3,7 +3,7 @@ import sys
 import json
 
 
-aws_cache = os.environ['COMPOSER_ROOT'] + "/.aws-cache"
+aws_cache = os.environ['HOME'] + "/.aws-cache"
 
 
 def get_config():
@@ -20,3 +20,13 @@ def get_config():
     with open(f"{aws_cache}/config.txt") as f:
         d = json.load(f)
         return d
+
+
+def append_to_file(dst, src):
+    if not os.path.exists(dst) or not os.path.exists(src):
+        print("Weak warning: No constraints found. Not appending")
+        return
+    a = open(dst, "a")
+    with open(src, 'r') as f:
+        for ln in f.readlines():
+            a.write(ln)
