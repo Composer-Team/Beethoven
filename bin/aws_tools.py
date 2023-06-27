@@ -429,7 +429,6 @@ def write_encrypt_script():
             else:
                 f.write(ln)
 
-
 def create_synth_script(srcs):
     with open(f"{HOME}/bin/aws/src/synth.tcl") as i:
         lns = i.readlines()
@@ -441,7 +440,7 @@ def create_synth_script(srcs):
         src_list = ""
         for src in srcs:
             src_list = src_list + f"\t{src} \\"
-        whole_file.format(vlist=src_list)
+        whole_file.replace("SOURCE_LIST_GOES_HERE", src_list)
 
 
 def copy_dcp_scripts():

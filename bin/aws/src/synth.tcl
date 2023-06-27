@@ -43,7 +43,7 @@ puts "AWS FPGA: ([clock format [clock seconds] -format %T]) Reading developer's 
 # reading .v, .vh, nor .inc files
 
 read_verilog -sv [ list \
-   {vlist}]
+   SOURCE_LIST_GOES_HERE ]
 
 #---- End of section replaced by User ----
 
