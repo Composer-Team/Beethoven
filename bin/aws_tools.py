@@ -440,7 +440,8 @@ def create_synth_script(srcs):
         src_list = ""
         for src in srcs:
             src_list = src_list + f"\t{src} \\"
-        whole_file.replace("SOURCE_LIST_GOES_HERE", src_list)
+        whole_file = whole_file.replace("SOURCE_LIST_GOES_HERE", src_list)
+        o.write(whole_file)
 
 
 def copy_dcp_scripts():
