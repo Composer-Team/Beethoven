@@ -43,7 +43,7 @@ path = f"{hdk_dir}/common/shell_stable/new_cl_template/"
 
 # copy cl template
 os.system(f"cp -rL {path}/build . && mkdir -p design && mv composer_aws.sv design/")
-os.system(f"rm build/scripts/*")
+os.system(f"rm -rf build/scripts/*")
 aws_tools.move_sources_to_design()
 
 # copy in the cl_dram_dma constraints over it
