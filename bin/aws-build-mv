@@ -8,8 +8,6 @@ import util
 help_message = """Composer AWS build mover
 
 Usage:
-aws-build-mv
-    Run without arguments to move build within $COMPOSER_ROOT/Composer-Hardware/ to FPGA staging
 aws-build-mv --help
     Display this help message
 aws-build-mv --reset_cache
@@ -71,14 +69,11 @@ assert 0 == os.system(f"aws s3 mb s3://{s3_name} --region {config['region']}")
 assert 0 == os.system(f"aws s3 mb s3://{s3_name}/logs")
 assert 0 == os.system(f"aws s3 mb s3://{s3_name}/tars")
 assert 0 == os.system(f"aws s3 mb s3://{s3_name}/headers")
-os.system(
-    f"aws s3 cp {checkpoints}/{timing_prefix}.Developer_CL.tar s3://{s3_name}/tars/{name}.tar"
-)
-os.system(
-    f"aws s3 cp {os.environ['COMPOSER_ROOT']}/Composer-Hardware/vsim/generated-src/composer_allocator_declaration.h s3://{s3_name}/headers/{name}.h"
-)
+os.system(f"aws s3 cp {checkpoints}/{timing_prefix}.Developer_CL.tar s3://{s3_name}/tars/{name}.tar")
+
 assert 0 == os.system(
-    f"aws s3 cp {os.environ['COMPOSER_ROOT']}/Composer-Hardware/vsim/generated-src/composer_allocator_declaration.h s3://{s3_name}/{name}.h"
+    f"tar -C {os.environ['HOME']}/build-dir/generated-src/ -czf env_{name}.tar.gz $(ls {os.environ['HOME']}/build-dir/generated-src) && "
+    f"aws s3 cp env_{name}.tar.gz s3://{s3_name}/env_{name}.tar.gz"
 )
 
 cmd = f'aws ec2 create-fpga-image --region {config["region"]} --name {name} --description "{name}" ' \

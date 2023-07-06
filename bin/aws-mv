@@ -3,7 +3,7 @@
 import sys
 import os
 
-print(os.environ)
-ip = input("IP Address: ").strip()
 cr = os.environ["COMPOSER_ROOT"]
+ip = sys.argv[1].strip()
+print("Sending to IP: '" + ip + "'")
 os.system(f'scp -r {cr}/Composer-Hardware/vsim/generated-src/*[sv\|v\|xdc\|h] ec2-user@{ip}:~/build-dir/generated-src/')
