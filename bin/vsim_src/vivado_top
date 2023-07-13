@@ -81,7 +81,6 @@ ${HDK_SHELL_DESIGN_DIR}/sh_ddr/sim/sh_ddr.sv
 
 
 --define DISABLE_VJTAG_DEBUG
-${CL_ROOT}/design/composer.v
 ${CL_ROOT}/design/composer_aws.sv
 
 -f ${HDK_COMMON_DIR}/verif/tb/filelists/tb.${SIMULATOR}.f

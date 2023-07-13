@@ -6,4 +6,7 @@ import os
 cr = os.environ["COMPOSER_ROOT"]
 ip = sys.argv[1].strip()
 print("Sending to IP: '" + ip + "'")
-os.system(f'scp -r {cr}/Composer-Hardware/vsim/generated-src/*[sv\|v\|xdc\|h] ec2-user@{ip}:~/build-dir/generated-src/')
+for fend in ['.sv', '.svh', '.xdc', '.c', '.cc', '.h']:
+    os.system(f'scp -r `find {cr}/Composer-Hardware/vsim/generated-src/ -name "*{fend}"` ec2-user@{ip}:~/build-dir/generated-src/')
+os.system(f'scp -r {cr}/Composer-Hardware/vsim/generated-src/composer.v ec2-user@{ip}:~/build-dir/generated-src/composer.sv')
+

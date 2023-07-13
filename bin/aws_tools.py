@@ -23,7 +23,7 @@ def scrape_aws_ports():
 
 
 def scrape_cl_ports():
-    ct = open(f"{HOME}/build-dir/generated-src/composer.v")
+    ct = open(f"{HOME}/build-dir/generated-src/composer.sv")
     lns = []
     state = 0
     for ln in ct.readlines():
@@ -107,7 +107,8 @@ def declare_reg_with_name(g, name, width, ar_width):
 
 
 def write_aws_header(f):
-    f.write(f"`include \"composer.v\"\n"
+    f.write(
+        # f"`include \"composer.sv\"\n"
             f"`include \"cl_id_defines.vh\"\n"
             f"`ifndef COMPOSER_DEFINES\n"
             f"`define COMPOSER_DEFINES\n"
@@ -438,7 +439,9 @@ def create_synth_script():
 
     with open("build/scripts/synth.tcl", 'w') as o:
         src_list = ""
-        for src in ["composer_aws.sv", "composer.v"]:
+        for src in ["composer_aws.sv"
+            # , "composer.sv"
+                    ]:
             src_list = src_list + f"\t{os.getcwd()}/design/{src} \\\n"
         whole_file = whole_file.replace("SOURCE_LIST_GOES_HERE", src_list)
         o.write(whole_file)
@@ -449,4 +452,7 @@ def copy_dcp_scripts():
 
 
 def move_sources_to_design():
-    os.system(f"cp generated-src/* design/")
+    os.system(f"cp -r generated-src/* design/")
+    with open("design/composer_aws.sv", "a") as f:
+        with open("generated-src/composer.sv", "r") as f2:
+            f.write(f2.read())
