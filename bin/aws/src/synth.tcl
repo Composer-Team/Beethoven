@@ -42,8 +42,9 @@ puts "AWS FPGA: ([clock format [clock seconds] -format %T]) Reading developer's 
 # Reading the .sv and .v files, as proper designs would not require
 # reading .v, .vh, nor .inc files
 
-read_verilog -sv [ list \
-   SOURCE_LIST_GOES_HERE ]
+source src_list.tcl
+
+read_verilog -sv $sources
 
 #---- End of section replaced by User ----
 

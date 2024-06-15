@@ -1,4 +1,4 @@
 #!/bin/bash
 
-sudo echo "<ADD_TAILSCALE_OAK_IP_HERE>\toak"
+echo "100.64.20.1 oak" >> /etc/hosts
 

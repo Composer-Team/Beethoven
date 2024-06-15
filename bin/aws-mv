@@ -6,7 +6,19 @@ import os
 cr = os.environ["COMPOSER_ROOT"]
 ip = sys.argv[1].strip()
 print("Sending to IP: '" + ip + "'")
-for fend in ['.sv', '.svh', '.xdc', '.c', '.cc', '.h']:
-    os.system(f'scp -r `find {cr}/Composer-Hardware/vsim/generated-src/ -name "*{fend}"` ec2-user@{ip}:~/build-dir/generated-src/')
-os.system(f'scp -r {cr}/Composer-Hardware/vsim/generated-src/composer.v ec2-user@{ip}:~/build-dir/generated-src/composer.sv')
+file_endings = ['.sv', '.svh', '.xdc', '.c', '.cc', '.h']
+# walk {cr}/Composer-Hardware/vsim/generated-src/ recursively and send all files with these endings
+
+os.system(f"scp -r {cr}/Composer-Hardware/vsim/generated-src/aws/* ec2-user@{ip}:~/build-dir/generated-src/") 
+
+#send_all(f'{cr}/Composer-Hardware/vsim/generated-src/')
+
+
+# for fend in ['.sv', '.svh', '.xdc', '.c', '.cc', '.h']:
+#     if there exists a file with this ending, send it over
+    # if os.path.exists(f'{cr}/Composer-Hardware/vsim/generated-src/*{fend}'):
+    #     for path in os.walk(f'{cr}/Composer-Hardware/vsim/generated-src/'):
+    #         print(path
+    #     os.system(f'scp -r `find {cr}/Composer-Hardware/vsim/generated-src/ -name "*{fend}"` ec2-user@{ip}:~/build-dir/generated-src/')
+# os.system(f'scp -r {cr}/Composer-Hardware/vsim/generated-src/composer.v ec2-user@{ip}:~/build-dir/generated-src/composer.sv')
 
