@@ -10,34 +10,6 @@ develop accelerators for existing platforms.
 We encourage readers to be familiar with [Chisel](https://www.chisel-lang.org) before going further as we make extensive
 use of their syntax in this documentation.
 
-## Installation
-
-The following script is the general setup for a development platform.
-If you are running on an embedded FPGA machine
-
-```Bash
-git clone https://github.com/Composer-Team/Composer
-# the rest of this script is a copy of Composer/install/setup.sh
-cd Composer
-git clone --recursive https://github.com/Composer-Team/Composer-Runtime
-git clone https://github.com/Composer_Team/Composer-Software
-shellr=$(basename $SHELL)
-echo "export COMPOSER_ROOT=$(pwd)" >> ~/.$(shellr)rc}
-
-# install software
-
-# 
-```
-
-#### Kria Modifications
-
-When running on embedded FPGA platforms, perform the following installation.
-
-```Bash
-
-```
-
-
 # Hardware Interfaces
 
 ## Cores
@@ -52,22 +24,26 @@ You declare a core in the following way.
 import chipsalliance.rocketchip.config.Parameters
 import beethoven.Systems._
 
-class MyCore(outer: ComposerSystem)(implicit p: Parameters)
- extends AcceleratorCore(outer) {
+class MyCore()(implicit p: Parameters) extends AcceleratorCore {
 ...
 }
 ```
 
-There's no need to worry about what `p: Parameters` does, just know that all of this is necessary to generate the
-scaffolding around cores and systems.
-If you want to parameterize your core further, you can do this by simply adding parameters to the list.
+`p: Parameters` is a construct from RocketChip that allows us to
+pass around a massive number of system parameters (e.g., bus-width),
+without requiring you to type them all out. `implicit`, just means
+that this "passing around" happens automatically if a variable of
+that type and name exists in the caller's variable scope.
+If you want to parameterize your core further, using application-specific
+parameters, you can do this by simply adding parameters to the list.
+We'll see how these parameters get passed in later.
 
 ```Scala
 import chipsalliance.rocketchip.config.Parameters
 import beethoven.Systems._
 
-class MyCore(paramB: String, outer: ComposerSystem, paramA: Int)(implicit p: Parameters)
- extends AcceleratorCore(outer) {
+class MyCore(paramB: String, paramA: Int)(implicit p: Parameters)
+ extends AcceleratorCore {
 ...
 }
 ```
@@ -80,13 +56,12 @@ The request contains an arbitrarily large payload or series of payloads and a re
 A request and response have a 1-to-1 correspondence, and a core can only process a single command at a time.
 
 ```Scala
-class MyCore(...)(implicit p: Parameters) extends AcceleratorCore(outer) {
+class MyCore()(implicit p: Parameters) extends AcceleratorCore {
   val my_req = BeethovenIO(
     new AccelCommand("funcA") {
       val a = UInt(4.W)
       val b = Address()
-    },
-    new AccelResponse("resp_t") {
+    }, new AccelResponse("resp_t") {
       val c = UInt(16.W)
     }
   )
@@ -136,7 +111,7 @@ Again, though, ensure that only one command is in-flight at a time in a core.
 In the following example, the namespace will include C++ stubs for `funcA` as well as `funcB`.
 
 ```Scala
-class MyCore(...)(implicit p: Parameters) extends AcceleratorCore(outer) {
+class MyCore()(implicit p: Parameters) extends AcceleratorCore {
   val my_req = BeethovenIO(
     new AccelCommand("funcA") {
       val a = UInt(4.W)
@@ -157,6 +132,20 @@ Requests, though, can be made arbitrarily large (although we don't recommend
 extreme cases).
 For high data-throughput we suggest the DMA capabilities mentioned later.
 
+**Commands without Responses:** Sometimes it's necessary to ping a core and no response or a response ping
+(with no response payload) is needed. Declaring such a command can be performed in the following way.
+```Scala
+// command IO with no response 
+val no_response_io = BeethovenIO(new AccelCommand("funcA") {
+    val a = UInt(4.W)
+})
+// command IO with an empty response (no payload)
+val empty_reponse = BeethovenIO(new AccelCommand("funcB") {
+    val b = UInt(5.W)
+ }, EmptyAccelResponse())
+```
+
+**Advanced Functionalities:**
 For more advanced/bare-metal functionalities, see the [Raw Commands](#raw-commands) and
 [Communcation with Other Cores](#communication-with-other-cores) sections.
 
@@ -182,8 +171,9 @@ class WithMyCore(nCores: Int) extends Config((site, here, up) => {
     up(AcceleratorSystems, site) ++ List(AcceleratorSystemConfig(
       name = "my_beethoven_accel",
       nCores = nCores,
-      moduleConstructor = ModuleBuilder({ case (outer, p) =>
-        new MyCore(outer, p)}
+      moduleConstructor = ModuleBuilder({ case p =>
+      // specify constructor for your core and how to pass in the "implicit p: Parameters" object
+        new MyCore()(p)}
       )
     )
 })
@@ -195,8 +185,8 @@ Next, we can use this pattern to build accelerators.
 
 ```Scala
 class MyAccelerator extends Config(
-  new WithMyCore(2) ++ new WithBeethoven(platform=AWSF1Platform()
-)
+  new WithMyCore(2) ++ new WithBeethoven(platform=AWSF1Platform())
+  
 object MyAccelerator extends BeethovenBuild(new MyAccelerator, 
   buildMode=Simulation)
 ```
@@ -213,17 +203,30 @@ elaborated design that make it easier for us and you to simulate.
 
 Beethoven provides _virtual_ abstractions for communicating with memory - that is, you do not have to worry about
 arbitration to a single resource.
-The value of this will become clear throughout this section.
+The benefits of this abstraction is the following:
+- **Avoids protocol-specific bottlenecks.** For example, AXI4 is a simplex protocol on 5 channels (ar, r, aw, w, and b),
+  whereas TileLink is a simplex protocol on 2 channels. It's not completely honest to say that AXI4 can achieve 2.5X
+  the throughput of TileLink, but there can be contention for channels (and therefore performance degradation) for
+  some protocols that do not exist on others. These abstractions give the impression of "sole" ownership over the
+  channels, allowing you to not have to deal with these protocol-level complications.
+- **Avoids protocol-specific nightmares.** For example, what does it mean for the AXI4 protocol to be "irrevokable" 
+  and how does it affect the design of your accelerator? Not all protocols are "irrevokable," making conversion between
+  these protocols tricky. These protocol-specific stipulations are mostly important for IP vendors and serves little
+  to no purpose for accelerator designers. 
+- **Avoids device-specific bottlenecks.** The size of algorithmic inputs may not align with the bus-width on all
+  systems. This forces the developer to spend time performing device-specific optimizations and adjustments and less
+  time focusing on the accelerator. As a for instance, imagine a simple operation like the multiplication of 2 32-bit
+  integers. The control circuit for the algorithm can be structured differently for the case of a 32-bit, 64-bit, and
+  larger buses. For 32-bit buses, 
 
 Beethoven provides two primary interfaces for interacting with memory: Readers and Writers.
-Both of these interfaces are ideal for long, burst reads to a memory segment.
-We don't currently have interfaces for short, sparse reads, but these can be added if there is demand.
+Both of these interfaces are optimized for long, burst reads to a memory segment. 
 
 You access readers and writers in your core implementation using `getReaderModule` and `getWriterModule`, like so:
 
 ```Scala
-class MyCore(outer: ComposerSystem)(implicit p: Parameters)
-  extends AcceleratorCore(outer) {
+class MyCore()(implicit p: Parameters)
+  extends AcceleratorCore {
   val ReaderModuleChannel(req, data) = getReaderModule("my_reader")
   val writerModuleChannel(req, data) = getWriterModule("my_writer")
   val r = getReaderModule("my_other_reader")
@@ -244,13 +247,13 @@ class WithMyCore(nCores: Int) extends Config((site, here, up) => {
     up(AcceleratorSystems, site) ++ List(AcceleratorSystemConfig(
       name = "my_beethoven_accel",
       nCores = nCores,
-      moduleConstructor = ModuleBuilder({ case (outer, p) =>
-        new MyCore(outer, p)}
+      moduleConstructor = ModuleBuilder({ case p =>
+        new MyCore()(p)}
       ),
-      memoryChannelParams = List(
-        ReadChannelParams(name = "my_reader", dataBytes = 2),
-        ReadChannelParams(name = "my_other_reader", dataBytes = 4),
-        WriteChannelParams(name = "my_writer", dataBytes = 16)
+      memoryChannelConfig = List(
+        ReadChannelConfig(name = "my_reader", dataBytes = 2),
+        ReadChannelConfig(name = "my_other_reader", dataBytes = 4),
+        WriteChannelConfig(name = "my_writer", dataBytes = 16)
       )
     )
 })
@@ -278,8 +281,8 @@ The reader will prefetch data from the segment and the core implementation can c
 it wishes.
 The writer emits writes to the memory system as the data becomes available on the channel.
 The amount of buffering and aggressiveness of the reader/writer implementations can be tuned to your satisfaction,
-though
-we provide sensible default values.
+though we provide sensible default values.
+Writers also include a `isFlushed` field to signify when writes have been persisted to memory. 
 See the [Advanced Memory Channels](#advanced-memory-channels) section for more details.
 
 ## On-Chip Memory
@@ -299,7 +302,7 @@ object Memory {
             nReadPorts: Int, // number of dedicated read ports
             nWritePorts: Int, // number of dedicated write ports
             nReadWritePorts: Int, // number of read-write ports
-            withWriteEnable: Boolean = false, // enable for byte-wise write-enable
+            withWriteEnable: Boolean = false, // enables byte-wise write-enable
             debugName: Option[String] = None, // optional name for memory cell
             allowFallbackToRegister: Boolean = true // disable to throw error if memory configuration is impossible
            )(implicit p: Parameters, valName: ValName): MemoryIOBundle =
@@ -307,8 +310,6 @@ object Memory {
 }
 ```
 
-The interface is not entirely simple, but should provide you with most of the features you should need for typical
-designs.
 Before we move on to the returned `MemoryIOBundle` interface for generated memory, a few notes on these parameters.
 The on-chip memories supported by a device are not always the exact memory required (or requested) by the designer.
 For instance, some ASIC PDKs may only provide memories with Read-Write ports and not support dedicated read and write
@@ -340,7 +341,7 @@ class MemoryIOBundle {
 ```
 
 **nPorts**: Each port in this bundle is a vector with the total number of ports for the memory.
-Because the ports may not be equal (i.e., read vs write ports), you need to ask the bundle for which port in the vector
+Because the ports may not be functionally equal (i.e., read vs write ports), you need to ask the bundle for which port in the vector
 corresponds to what you want with the following functions:
 
 - `getReadPortIdx(i: Int)`
