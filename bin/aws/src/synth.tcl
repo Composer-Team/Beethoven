@@ -42,7 +42,7 @@ puts "AWS FPGA: ([clock format [clock seconds] -format %T]) Reading developer's 
 # Reading the .sv and .v files, as proper designs would not require
 # reading .v, .vh, nor .inc files
 
-source asrc_list.tcl
+source src_list.tcl
 
 set bad_idx [lsearch $hdl_sources "*BeethovenTopVCSHarness.v"]
 if { $bad_idx != -1 } {
