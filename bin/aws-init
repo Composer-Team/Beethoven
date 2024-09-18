@@ -27,7 +27,9 @@ if not is_local:
         remote_cmd("bash bin/aws/scripts/initial_setup.sh")
 else:
     os.makedirs(os.environ["HOME"] + "/bin", exist_ok=True)
-    os.system(f"cp -r {os.environ['BEETHOVEN_ROOT']}/bin/* {os.environ['HOME']}/bin/")
+    # check to make sure this is being run from the directory that contains the executable
+    if os.path.exists("aws-init"):
+        os.system(f"cp -r ../bin/* {os.environ['HOME']}/bin/")
     # If the Path doesn't contain the bin directory, add it
     if os.environ["PATH"].find(os.environ["HOME"] + "/bin") == -1:
         shell = os.environ["SHELL"].split("/")[-1]
