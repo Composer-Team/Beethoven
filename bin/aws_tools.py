@@ -418,7 +418,7 @@ def write_encrypt_script():
     to_write = ["file copy -force $CL_DIR/design/beethoven_aws.sv $TARGET_DIR\n",
                 "file copy -force $CL_DIR/design/cl_id_defines.vh $TARGET_DIR\n"] + \
                [f"file copy -force $CL_DIR/design/{x} $TARGET_DIR\n"
-                for x in list(os.walk(f"{HOME}/build-dir/generated-src/"))[0][2]]
+                for x in list(os.walk(f"./generated-src/"))[0][2]]
 
     with open("build/scripts/encrypt.tcl", 'w') as f:
         for ln in lns:
