@@ -42,9 +42,14 @@ puts "AWS FPGA: ([clock format [clock seconds] -format %T]) Reading developer's 
 # Reading the .sv and .v files, as proper designs would not require
 # reading .v, .vh, nor .inc files
 
-source src_list.tcl
+source asrc_list.tcl
 
-read_verilog -sv $sources
+set bad_idx [lsearch $hdl_sources "*BeethovenTopVCSHarness.v"]
+if { $bad_idx != -1 } {
+  set hdl_sources [lreplace $hdl_sources $bad_idx $bad_idx]
+}
+
+read_verilog -sv [concat ../../design/beethoven_aws.sv $hdl_sources]
 
 #---- End of section replaced by User ----
 

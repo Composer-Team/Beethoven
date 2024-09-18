@@ -11,7 +11,7 @@ def get_config():
         os.system(f"mkdir -p {aws_cache}")
         my_dict = {}
         my_dict.update({'region': input("What AWS region to use?\n")})
-        my_dict.update({'username': input("Composer will attempt to create an AWS s3 bucket to store your data in."
+        my_dict.update({'username': input("Beethoven will attempt to create an AWS s3 bucket to store your data in."
                                           " Provide an identifying username: ")})
         f = open(f"{aws_cache}/config.txt", 'w')
         f.write(json.dumps(my_dict))

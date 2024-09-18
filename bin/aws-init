@@ -6,17 +6,31 @@ print("""This script is intended to be ran the first time you set up an AWS EC2 
  happen locally and then intermediate objects are moved over to the instance where they can be built into a tarball.
  This should minimize the amount of time spent setting up keys and compile infrastructure.""")
 
-ip = input("Enter AWS IP:")
+ip = input("Enter AWS IP (or local):")
 
-os.system(f"ssh-copy-id ec2-user@{ip}")
+is_local = ip == "local"
 
+install_aws = input("Install AWS FPGA tools? y/[n]:") == "y"
 
-def remote_cmd(str):
-    global ip
-    os.system(f"ssh ec2-user@{ip} {str}")
+if not is_local:
+    os.system(f"ssh-copy-id ec2-user@{ip}")
+    
+    def remote_cmd(str):
+        global ip
+        os.system(f"ssh ec2-user@{ip} {str}")
 
-
-os.system(f"cd {os.environ['COMPOSER_ROOT']} && tar -czf tmp.tgz bin && scp tmp.tgz ec2-user@{ip}:~/ && rm tmp.tgz")
-remote_cmd("tar -xzf tmp.tgz")
-remote_cmd("rm tmp.tgz")
-remote_cmd("bash bin/aws/scripts/initial_setup.sh")
+    os.system(f"scp -r {os.environ['BEETHOVEN_ROOT']} ec2-user@{ip}:~/")
+    os.system(f"cd {os.environ['BEETHOVEN_ROOT']} && tar -czf tmp.tgz bin && scp tmp.tgz ec2-user@{ip}:~/ && rm tmp.tgz")
+    remote_cmd("tar -xzf tmp.tgz")
+    remote_cmd("rm tmp.tgz")
+    if install_aws:
+        remote_cmd("bash bin/aws/scripts/initial_setup.sh")
+else:
+    os.makedirs(os.environ["HOME"] + "/bin", exist_ok=True)
+    os.system(f"cp -r {os.environ['BEETHOVEN_ROOT']}/bin/* {os.environ['HOME']}/bin/")
+    # If the Path doesn't contain the bin directory, add it
+    if os.environ["PATH"].find(os.environ["HOME"] + "/bin") == -1:
+        shell = os.environ["SHELL"].split("/")[-1]
+        home = os.environ["HOME"]
+        print(f"Adding ~/bin to PATH in {home}/.{shell}rc")
+        os.system(f"echo 'export PATH=$HOME/bin:$PATH' >> {home}/.{shell}rc")

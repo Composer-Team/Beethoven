@@ -11,5 +11,5 @@ if os.environ.get('KRIA_IP') is None:
 
 kria_ip = os.environ['KRIA_IP']
 
-os.system(f"scp {os.environ['COMPOSER_ROOT']}/Composer-Hardware/vsim/generated-src/composer_allocator")
+os.system(f"scp {os.environ['BEETHOVEN_ROOT']}/Beethoven-Hardware/vsim/generated-src/beethoven_allocator")
 

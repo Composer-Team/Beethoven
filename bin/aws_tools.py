@@ -23,7 +23,7 @@ def scrape_aws_ports():
 
 
 def scrape_cl_ports():
-    ct = open(f"{HOME}/build-dir/generated-src/composer.sv")
+    ct = open(f"{HOME}/build-dir/generated-src/beethoven.sv")
     lns = []
     state = 0
     for ln in ct.readlines():
@@ -32,7 +32,7 @@ def scrape_cl_ports():
                 continue
             spl = ln.split()
             if spl[0] == 'module':
-                if spl[1][:-1] == 'ComposerTop':
+                if spl[1][:-1] == 'BeethovenTop':
                     state = 1
         elif state == 1:
             # start scraping ios
@@ -52,7 +52,7 @@ def scrape_sh_ddr_ports():
 
 def get_num_ddr_channels():
     with open(
-            f"{HOME}/build-dir/generated-src/composer_allocator_declaration.h") as f:
+            f"{HOME}/build-dir/generated-src/beethoven_allocator_declaration.h") as f:
         lns = f.readlines()
         for ln in lns:
             if "NUM_DDR_CHANNELS" in ln:
@@ -79,7 +79,7 @@ wire_counter = 0
 
 def declare_wire(g, width, ar_width):
     global wire_counter
-    name = f"composer_{wire_counter}"
+    name = f"beethoven_{wire_counter}"
     wire_counter = wire_counter + 1
     return declare_wire_with_name(g, name, width, ar_width)
 
@@ -108,11 +108,11 @@ def declare_reg_with_name(g, name, width, ar_width):
 
 def write_aws_header(f):
     f.write(
-        # f"`include \"composer.sv\"\n"
+        # f"`include \"beethoven.sv\"\n"
             f"`include \"cl_id_defines.vh\"\n"
-            f"`ifndef COMPOSER_DEFINES\n"
-            f"`define COMPOSER_DEFINES\n"
-            f"`define CL_NAME composer_aws\n"
+            f"`ifndef BEETHOVEN_DEFINES\n"
+            f"`define BEETHOVEN_DEFINES\n"
+            f"`define CL_NAME beethoven_aws\n"
             f"`define FPGA_LESS_RST\n"
             f"`ifndef CL_VERSION\n"
             f"`define CL_VERSION 32'hee_ee_ee_00\n"
@@ -130,7 +130,7 @@ def write_aws_header(f):
 def create_aws_shell():
     # Get io_in and io_out ports for shell so that we can initialize them all to tied off values.
 
-    # How many AXI4-Mem interfaces did we intialize Composer with?
+    # How many AXI4-Mem interfaces did we intialize Beethoven with?
     ndram = get_num_ddr_channels()
 
     ddr_ios: List[VerilogPort] = scrape_sh_ddr_ports()
@@ -139,12 +139,12 @@ def create_aws_shell():
 
     to_tie = []
 
-    g = open("composer_aws.sv", 'w')
+    g = open("beethoven_aws.sv", 'w')
     # Write header
     write_aws_header(g)
     # Write module header
     g.write(
-        f"module composer_aws #(parameter NUM_PCIE=1, parameter NUM_DDR=4, parameter NUM_HMC=4, parameter NUM_GTY=4)\n"
+        f"module beethoven_aws #(parameter NUM_PCIE=1, parameter NUM_DDR=4, parameter NUM_HMC=4, parameter NUM_GTY=4)\n"
         f"(\n"
         f"\t`include \"cl_ports.vh\" // fixed ports definition included by build script\n"
         f");\n"
@@ -167,7 +167,7 @@ def create_aws_shell():
         f"\t\tactive_high_rst <= 0;\n"
         f"\tend\n")
 
-    ############# INIT ALL COMPOSER STUFF ################
+    ############# INIT ALL BEETHOVEN STUFF ################
     cl_io_wiremap = {}
     cl_mems = {}
     axi_parts = set()
@@ -186,7 +186,7 @@ def create_aws_shell():
     ddr_trained_ddrsig = declare_wire_with_name(g, "RESERVED_SH_DDR_WIRE_is_ready", ddr_trained_ddrpart.width,
                                                 ddr_trained_ddrpart.ar_width)
     reserved_ddr_map.update({ddr_trained_ddrpart: ddr_trained_ddrsig})
-    # collate the ddr_is_ready signals so we can throw them in ComposerTop somewhere
+    # collate the ddr_is_ready signals so we can throw them in BeethovenTop somewhere
     if ndram > 0:
         creadys = []
         if ndram >= 1:
@@ -211,7 +211,7 @@ def create_aws_shell():
             continue
         pc = get_class(pr.name)
         apn = pr.get_axi_part_name()
-        wr = declare_wire_with_name(g, f"composer_{pc.name}{wnumber}_{apn}", pr.width, pr.ar_width)
+        wr = declare_wire_with_name(g, f"beethoven_{pc.name}{wnumber}_{apn}", pr.width, pr.ar_width)
         # find wires in the group and fuse them together
         cl_io_wiremap.update({pr: wr})
         if get_class(pr.name) == PortClass.Master:
@@ -226,12 +226,12 @@ def create_aws_shell():
             if ddr.name in reserved_ddr_wires:
                 continue
             if ddr.ar_width == 1 and ddr.width > 1:
-                ddr_wire = [declare_wire_with_name(g, f"composer_ddr_{i}_{axi_name}", 1, 1)
+                ddr_wire = [declare_wire_with_name(g, f"beethoven_ddr_{i}_{axi_name}", 1, 1)
                             for i in range(ddr.width)]
             else:
-                ddr_wire = [declare_wire_with_name(g, f"composer_ddr_{i}_{axi_name}", ddr.width, 1)
+                ddr_wire = [declare_wire_with_name(g, f"beethoven_ddr_{i}_{axi_name}", ddr.width, 1)
                             for i in range(ddr.ar_width)]
-            ddr_fuse = declare_wire_with_name(g, f"composer_ddr_fuse_{axi_name}", ddr.width,
+            ddr_fuse = declare_wire_with_name(g, f"beethoven_ddr_fuse_{axi_name}", ddr.width,
                                               ddr.ar_width)
             for i, w in enumerate(ddr_wire):
                 if ddr.input:
@@ -299,7 +299,7 @@ def create_aws_shell():
             p.assign(g, wi)
 
     for dma in filter(lambda x: 'dma' in x.name, cl_ios):
-        # find matching composer logic port
+        # find matching beethoven logic port
         p = search_for_part(dma.get_axi_part_name(), "dma_pcis", shell_ports)
         if len(p) == 0:
             if dma.input:
@@ -312,7 +312,7 @@ def create_aws_shell():
         else:
             p[0].assign(g, cl_io_wiremap[dma])
 
-    g.write("ComposerTop myTop(\n"
+    g.write("BeethovenTop myTop(\n"
             "\t.clock(clk),\n"
             "\t.reset(active_high_rst),\n")
     for i, pr in enumerate(cl_ios):
@@ -403,7 +403,7 @@ def create_aws_shell():
 
 def write_id_defines():
     with open("design/cl_id_defines.vh", 'w') as f:
-        f.write("`define CL_NAME composer_aws\n"
+        f.write("`define CL_NAME beethoven_aws\n"
                 "`define CL_SH_ID0 32'hF001_1D0F\n"
                 "`define CL_SH_ID1 32'h1D51_FEDC\n")
 
@@ -412,7 +412,7 @@ def write_encrypt_script():
     with open(EncryptTCLfname) as f:
         lns = f.readlines()
 
-    to_write = ["file copy -force $CL_DIR/design/composer_aws.sv $TARGET_DIR\n",
+    to_write = ["file copy -force $CL_DIR/design/beethoven_aws.sv $TARGET_DIR\n",
                 "file copy -force $CL_DIR/design/cl_id_defines.vh $TARGET_DIR\n"] + \
                [f"file copy -force $CL_DIR/design/{x} $TARGET_DIR\n"
                 for x in list(os.walk(f"{HOME}/build-dir/generated-src/"))[0][2]]
@@ -439,8 +439,8 @@ def create_synth_script():
 
     with open("build/scripts/synth.tcl", 'w') as o:
         src_list = ""
-        for src in ["composer_aws.sv"
-            # , "composer.sv"
+        for src in ["beethoven_aws.sv"
+            # , "beethoven.sv"
                     ]:
             src_list = src_list + f"\t{os.getcwd()}/design/{src} \\\n"
         whole_file = whole_file.replace("SOURCE_LIST_GOES_HERE", src_list)
@@ -453,6 +453,6 @@ def copy_dcp_scripts():
 
 def move_sources_to_design():
     os.system(f"cp -r generated-src/* design/")
-    with open("design/composer_aws.sv", "a") as f:
-        with open("generated-src/composer.sv", "r") as f2:
+    with open("design/beethoven_aws.sv", "a") as f:
+        with open("generated-src/beethoven.sv", "r") as f2:
             f.write(f2.read())

@@ -19,5 +19,5 @@ if file == '1':
 else:
     file = 'src/xsim_vector_sanity.cc'
 
-os.system(f"cmake {os.environ['COMPOSER_ROOT']}/Composer-Runtime -DTARGET={target} -DFILE={file}")
+os.system(f"cmake {os.environ['BEETHOVEN_ROOT']}/Beethoven-Runtime -DTARGET={target} -DFILE={file}")
 
