@@ -185,7 +185,16 @@ switch $strategy {
 }
 
 #Encrypt source code
-source encrypt.tcl
+# Actually - don't do this for three reasons.
+# 1. You don't need it to get the toolchain to work
+# 2. If there's a long timing path in your code, you're
+#    going to have no idea what it is if the path name
+#    is encrypted
+# 3. Duke doesn't have the Xilinx encryption license so
+#    this will fail if you try to do it on an on-
+#    premise machine. You'll still to do it on an AWS
+#    instance to get the final DCP, but that's fine...
+# source encrypt.tcl
 
 #Set the Device Type
 source $HDK_SHELL_DIR/build/scripts/device_type.tcl
