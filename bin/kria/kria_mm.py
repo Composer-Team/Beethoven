@@ -2,7 +2,7 @@ import os
 import sys
 
 # First, check that we're running in sudo
-if os.geteuidx() != 0:
+if os.geteuid() != 0:
     print("This script must be run as root")
     sys.exit(1)
 
