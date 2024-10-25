@@ -8,7 +8,7 @@ def verilog_to_chisel_blackbox(file):
     with open(file, 'r') as f:
         lines = f.readlines()
     # Get the module name
-    name = file.split('/')[-1].split('.')[-1]
+    name = file.split('/')[-1].split('.')[0]
     # Get the IOs as pairs (name, width)
     inputs = []
     outputs = []
@@ -20,7 +20,7 @@ def verilog_to_chisel_blackbox(file):
         width = 1
         if ln.find('[') != -1:
             width = int(ln.split('[')[1].split(':')[0])+1
-        wire_name = ln.split()[1].split(';')[0]
+        wire_name = ln.split(';')[0].split()[-1]
         if is_input:
             inputs.append((wire_name, width))
         else:
