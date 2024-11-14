@@ -213,6 +213,7 @@ source $HDK_SHELL_DIR/build/scripts/aws_gen_clk_constraints.tcl
 #### Do not remove this setting. Need to workaround bug
 ##################################################################
 set_param hd.clockRoutingWireReduction false
+set_param general.maxThreads 8
 ##################################################
 ### CL XPR OOC Synthesis
 ##################################################
