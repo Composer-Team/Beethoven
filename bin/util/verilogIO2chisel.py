@@ -182,6 +182,17 @@ when (state_{name} === sm_{name}_idle) {{
           dataBytes = 4
 )""")
 
+    axi_m = set()
+    axi_s = False
+    for name, w in inputs:
+        if "m_axi" in name and "RDATA" in name:
+            port_name = '_'.join(name.split('_')[2:-2])
+            axi_m.add((port_name, w))
+        if name == "s_axi_control_AWADDR":
+            axi_s = True
+
+
+
     total_out_width = 0
     outs_to_join = []
     for (name, w) in outputs:
@@ -302,11 +313,9 @@ when (sm_state === sm_idle) {{
     with open(ofile, "w") as f:
         f.write(f"""
 package design.machsuite.hls
-import beethoven.Systems.AcceleratorCore
-import beethoven.Parameters._
-import beethoven.Generation.BeethovenBuild
+import beethoven._
 import beethoven.common._
-import chipsalliance.rocketchip.config.{{Config, Parameters}}
+import chipsalliance.rocketchip.config._
 import chisel3._
 import chisel3.util._
 
@@ -334,29 +343,25 @@ class HLSHarness()(implicit p: Parameters) extends AcceleratorCore() {{
             f"""package design.machsuite.hls
 import beethoven.Parameters._
 import chipsalliance.rocketchip.config.Config
-class HLSConfig(nCores: Int) extends Config((site, _, up) => {{
-  case AcceleratorSystems => up(AcceleratorSystems, site) ++ Seq(
+class HLSConfig(nCores: Int) extends AcceleratorConfig(Seq(
     AcceleratorSystemConfig(
       nCores = nCores,
       name = "{nm}",
       moduleConstructor = ModuleBuilder(p => new HLSHarness()(p)),
       memoryChannelConfig = List(
         {memory_configs_str}
-      )))
-  }})
+      ))))
 """)
     with open("HLSRun.scala", "w") as f:
         f.write("""package design.machsuite.hls
-import beethoven.Generation.BeethovenBuild
-import beethoven.Parameters.WithBeethoven
-import beethoven.Platforms.FPGA.Xilinx.KriaPlatform
-import chipsalliance.rocketchip.config.Config
+import beethoven._
+import chipsalliance.rocketchip.config._
 
-class HLSRun extends Config(new HLSConfig(1) ++ new WithBeethoven(
+object HLSRun extends BeethovenBuild(
+  new HLSConfig(1),
   platform = KriaPlatform()
-))
+)
 
-object HLSRun extends BeethovenBuild(new HLSRun)
 """)
 
 
