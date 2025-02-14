@@ -4,9 +4,9 @@ from VerilogUtils import *
 
 HOME = os.environ['HOME']
 EncryptTCLfname = HOME + "/bin/aws/src/encrypt.tcl"
-AWS_HOME = os.environ['AWS_HOME']
-if AWS_HOME is None:
-    raise Exception("AWS_HOME not set. Set it to your aws-fpga directory.")
+AWS_FPGA_REPO_DIR = os.environ['AWS_FPGA_REPO_DIR']
+if AWS_FPGA_REPO_DIR is None:
+    raise Exception("AWS_FPGA_REPO_DIR not set. Set it to your aws-fpga directory.")
 
 
 def get_class(name: str):
@@ -21,7 +21,7 @@ def get_class(name: str):
 
 
 def scrape_aws_ports():
-    with open(f"{AWS_HOME}/hdk/common/shell_stable/design/interfaces/cl_ports.vh") as f:
+    with open(f"{AWS_FPGA_REPO_DIR}/hdk/common/shell_stable/design/interfaces/cl_ports.vh") as f:
         return scrape_ports_from_lines(f.readlines())
 
 
@@ -48,14 +48,14 @@ def scrape_cl_ports():
 
 
 def scrape_sh_ddr_ports():
-    with open(f"{AWS_HOME}/hdk/common/shell_stable/design/sh_ddr/sim/sh_ddr.sv") as f:
+    with open(f"{AWS_FPGA_REPO_DIR}/hdk/common/shell_stable/design/sh_ddr/sh_ddr.stub.sv") as f:
         lns = f.readlines()[45:]
         return scrape_ports_from_lines(lns)
 
 
 def get_num_ddr_channels():
     with open(
-            f"./generated-src/beethoven_allocator_declaration.h") as f:
+            f"./generated-src/beethoven_hardware.h") as f:
         lns = f.readlines()
         for ln in lns:
             if "NUM_DDR_CHANNELS" in ln:
@@ -194,7 +194,10 @@ def create_aws_shell():
         creadys = []
         if ndram >= 1:
             shell_sig_reg = declare_reg_with_name(g, "RESERVED_SHELL_is_ddr_ready", 1, 1)
-            shell_sig_reg.assign(g, search_for_part("is_ready", "ddr_", shell_ports)[0])
+            is_ready_search = search_for_part("is_ready", "ddr_", shell_ports)
+            print(shell_ports)
+            print(is_ready_search)
+            shell_sig_reg.assign(g, is_ready_search[0])
             creadys.append(shell_sig_reg)
         if ndram > 1:
             for i in range(ndram - 1):

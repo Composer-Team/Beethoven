@@ -99,6 +99,12 @@ class VerilogPort(Wire):
         self.logic = is_logic
         assert self.input or self.output or self.inout
 
+    def __str__(self):
+        return f"{self.name}"
+    
+    def __repr__(self):
+        return self.__str__() + "\n"
+
     def get_group_name(self):
         if not '_' in self.axi_clean_name:
             return None
@@ -199,6 +205,8 @@ def scrape_ports_from_lines(lns):
         # remove everything after comments
         if '//' in ln:
             ln = ln[:ln.find('//')].strip()
+        if '(*' in ln:
+            ln = ln[:ln.find('(*')].strip() + ln[ln.find('*)')+2:].strip()
         # if it's empty, remove now
         if ln == '':
             continue

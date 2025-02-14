@@ -15,8 +15,8 @@ else:
     opt = input("'beethoven.cfg' file not found.\n"
                 "Which backend?\n"
                 "1 - AWS FPGA\n"
-                "2 - XSIM (Simulation of AWS Shell using Xilinx Vivado XSIM) - SLOW!\n"
-                "3 - sanity\n").strip()
+                "2 - DEBUG ONLY - XSIM (Simulation of AWS Shell using Xilinx Vivado XSIM) - SLOW!\n"
+                "3 - DEBUG ONLY - sanity\n").strip()
     if opt == '1':
         opt = 'aws'
     elif opt == '2':
