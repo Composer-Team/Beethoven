@@ -20,13 +20,13 @@ if "--help" in sys.argv:
 
 config = util.get_config()
 
-vivado_root = f"{os.environ['HOME']}/build-dir/build/"
+vivado_root = f"../"
 
 # First, check that build ran correctly
 reports = vivado_root + "reports"
-checkpoints = vivado_root + "checkpoints/to_aws"
+checkpoints = vivado_root + "checkpoints"
 walk = list(os.walk(reports))[0][2]
-timings = list(filter(lambda x: "SH_CL_final_timing_summary.rpt" in x, walk))
+timings = list(filter(lambda x: "post_route_timing.rpt" in x, walk))
 if len(timings) > 1:
     print(
         "Multiple builds found in output directory. Please choose the one you'd like to move."
@@ -51,28 +51,28 @@ timing_f = reports + "/" + timing
 
 # Now we have timing file, make sure it contains the success message
 f = open(timing_f)
-has_success = reduce(
-    lambda x, y: x or y,
-    map(lambda x: x.strip() == "All user specified timing constraints are met.",
-        f.readlines()))
-if not has_success:
-    print("This build failed to pass timing. See specified report for details.")
-    exit(2)
+has_success = True
+for ln in f.readlines():
+    if "VIOLATED" in ln:
+        print("This build failed to pass timing. See specified report for details.")
+        exit(2)
 
 # Else we passed timing, and we can actually build it
 name = input(
     "Beginning to build final image. Give this run a key so you can identify it on the FPGA system.\n"
 ).strip()
-timing_prefix = timing.split(".")[0]
+timing_prefix = timing.split(".")[1]
 s3_name = f"beethoven-{config['username']}"
 assert 0 == os.system(f"aws s3 mb s3://{s3_name} --region {config['region']}")
 assert 0 == os.system(f"aws s3 mb s3://{s3_name}/logs")
 assert 0 == os.system(f"aws s3 mb s3://{s3_name}/tars")
 assert 0 == os.system(f"aws s3 mb s3://{s3_name}/headers")
+
+print("timing prefix", timing_prefix)
 os.system(f"aws s3 cp {checkpoints}/{timing_prefix}.Developer_CL.tar s3://{s3_name}/tars/{name}.tar")
 
 assert 0 == os.system(
-    f"tar -C {os.environ['HOME']}/build-dir/generated-src/ -czf env_{name}.tar.gz $(ls {os.environ['HOME']}/build-dir/generated-src) && "
+    f"tar -C {os.environ['HOME']}/cl_beethoven_top/design/ -czf env_{name}.tar.gz $(ls {os.environ['HOME']}/cl_beethoven_top/design) && "
     f"aws s3 cp env_{name}.tar.gz s3://{s3_name}/env_{name}.tar.gz"
 )
 
