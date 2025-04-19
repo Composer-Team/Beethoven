@@ -1,0 +1,9 @@
+[submodule "Beethoven-Hardware"]
+	path = Beethoven-Hardware
+	url = https://github.com/Composer-Team/Beethoven-Hardware
+[submodule "Beethoven-Runtime"]
+	path = Beethoven-Runtime
+	url = https://github.com/Composer-Team/Beethoven-Runtime
+[submodule "Beethoven-Software"]
+	path = Beethoven-Software
+	url = https://github.com/Composer-Team/Beethoven-Software
