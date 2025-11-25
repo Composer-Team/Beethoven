@@ -41,7 +41,12 @@ const config = {
       'classic',
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
-        docs: false,
+        docs: {
+          sidebarPath: './sidebars.js',
+          routeBasePath: 'docs',
+          breadcrumbs: true,
+          editUrl: 'https://github.com/Composer-Team/Beethoven-Docs/edit/main/',
+        },
         blog: false,
         theme: {
           customCss: './src/css/custom.css',
@@ -62,10 +67,16 @@ const config = {
           src: 'img/favicon.png',
         },
         items: [
-          {to: '/Beethoven', label: 'Getting Started', position: 'left'},
+          {
+            type: 'docSidebar',
+            sidebarId: 'beethoven',
+            position: 'left',
+            label: 'Documentation',
+          },
+          {to: '/', label: 'Home', position: 'left'},
           {
             position: 'left',
-            label: 'Beethoven Project Template',
+            label: 'Project Template',
             to: 'https://github.com/Composer-Team/Beethoven-Template'
           },
           {
@@ -83,15 +94,15 @@ const config = {
             items: [
               {
                 label: 'Getting Started',
-                to: '/Beethoven',
+                to: '/docs/getting-started',
               },
               {
                 label: 'Hardware Stack',
-                to: '/Beethoven/HW',
+                to: '/docs/hardware/overview',
               },
               {
                 label: 'Software Stack',
-                to: '/Beethoven/SW',
+                to: '/docs/software/overview',
               },
             ],
           },
@@ -100,15 +111,15 @@ const config = {
             items: [
               {
                 label: 'Kria/Zynq',
-                to: '/Beethoven/Platform/Kria',
+                to: '/docs/platforms/kria',
               },
               {
                 label: 'AWS F2',
-                to: '/Beethoven/Platform/AWSF',
+                to: '/docs/platforms/aws-f2',
               },
               {
-                label: 'New Platform Guide',
-                to: '/Beethoven/Platform/NewPlatform',
+                label: 'Custom Platforms',
+                to: '/docs/platforms/custom-platform',
               },
             ],
           },
