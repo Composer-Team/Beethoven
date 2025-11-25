@@ -144,7 +144,7 @@ const config = {
         copyright: `Copyright © ${new Date().getFullYear()} Composer Team. Built with Docusaurus.`,
       },
       prism: {
-	additionalLanguages: ['verilog', 'java'],
+	additionalLanguages: ['verilog', 'java', 'scala'],
       },
     }),
 };
