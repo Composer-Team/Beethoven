@@ -18,10 +18,13 @@ const sidebars = {
       },
       items: [
         'hardware/overview',
+        'hardware/example',
         'hardware/memory',
+        'hardware/host-interface',
+        'hardware/configuration',
         'hardware/verilog',
-        'hardware/asic-memory-compiler',
         'hardware/cross-core',
+        'hardware/asic-memory-compiler',
       ],
     },
     {
