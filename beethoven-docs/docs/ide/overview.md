@@ -23,14 +23,13 @@ The extension automates this: edit Scala, save, and C++ immediately sees the new
 
 ### Installation
 
-```bash
-cd beethoven-vscode
-npm install
-npm run compile
-vsce package
-```
+Install the Beethoven extension from the VSCode Marketplace:
 
-Then install the generated `.vsix` file in VSCode: Extensions → ⋯ → Install from VSIX.
+1. Open VSCode Extensions (Cmd+Shift+X / Ctrl+Shift+X)
+2. Search for "Beethoven"
+3. Click Install on the Beethoven extension
+
+Or install directly from the [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=composer-team.beethoven).
 
 ### Required Extensions
 
