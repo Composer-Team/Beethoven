@@ -64,15 +64,20 @@ We provide a docker image and VSCode integration that should provide everything 
 ### Manrual Environment Setup
 
 Beethoven uses the `BEETHOVEN_PATH` environment variable to export the hardware and generated software for a design.
-```bash
+```bash title="Set up BEETHOVEN_PATH"
 mkdir <my-beethoven-dir>
 echo "export BEETHOVEN_PATH=`pwd`/my-beethoven-dir" >> ~/.bashrc
 ```
+
+:::warning
+Restart your shell or run `source ~/.bashrc` after setting BEETHOVEN_PATH for the changes to take effect.
+:::
+
 If you use a different shell, you can put the equivalent in the corresponding rc file.
 
 #### Dependencies
 
-Beethoven Hardware depends on [sbt](https://www.scala-sbt.org) and a Java version 8-17. Newer versions do not play well with sbt.
+Beethoven Hardware depends on [sbt](https://www.scala-sbt.org) and a Java version 8-21.
 We heavily encourage the use of an IDE for developing Chisel or Beethoven. We internally use the JetBrains [IntelliJ IDE](https://www.jetbrains.com/idea/download/)
 and find it very helpful. If you choose to use IntelliJ or a similar IDE, make sure to download the sbt plugin from the plugin
 marketplace.
@@ -87,7 +92,7 @@ The Beethoven Software library is required for both simulating and running your 
 
 <Tabs>
 <TabItem value="a" label="Simulation/AWS F2" default>
-```bash
+```bash title="Install for Simulation/AWS F2"
 git clone https://github.com/Composer-Team/Beethoven-Software
 cd Beethoven-Software
 mkdir build
@@ -98,7 +103,7 @@ sudo make install
 ```
 </TabItem>
 <TabItem value="b" label="Zynq">
-```bash
+```bash title="Install for Zynq"
 git clone https://github.com/Composer-Team/Beethoven-Software
 cd Beethoven-Software
 mkdir build
@@ -109,7 +114,7 @@ sudo make install
 ```
 </TabItem>
 <TabItem value="c" label="Non-Root Install">
-```bash
+```bash title="Install without root access"
 git clone https://github.com/Composer-Team/Beethoven-Software
 cd Beethoven-Software
 mkdir build
