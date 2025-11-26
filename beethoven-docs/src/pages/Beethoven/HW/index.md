@@ -864,7 +864,7 @@ hardware and run a platform-specific
 - AWS F1/F2 [[link]](https://aws.amazon.com/ec2/instance-types/f2/) [[GitHub]](https://github.com/aws/aws-fpga) - 
     AWS offers cloud-FPGAs at a reasonable hourly price for those who aren't ready to drop $15,000 on a new 
     datacenter FPGA. AWS has recently phased-out use of the F1 platform and we are transferring this functionality over to the F2.
-    [See here](/Beethoven/Platform/AWSF) for a walkthrough on deploying a design on AWS F2.
+    [See here](/docs/platforms/aws-f2) for a walkthrough on deploying a design on AWS F2.
 - [Zynq Ultrascale+ Series](https://www.amd.com/en/products/adaptive-socs-and-fpgas/soc/zynq-ultrascale-plus-mpsoc.html) -
     The Zynq MPSoCs feature a dual-Core ARM A53 capable of running Linux. We use the [Kria KV260](https://www.amd.com/en/products/system-on-modules/kria/k26/kv260-vision-starter-kit.html)
     for our development purposes. [See here](/Beethoven/Platform/Kria) for a walkthrough on deploying a design on Kria.

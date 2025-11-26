@@ -12,7 +12,7 @@ Below we show a high-level break-down of Beethoven into its hardware and softwar
 <area shape="rect" coords="184,291,356,313" href="/Beethoven-Docs/Beethoven/Platform/Kria"/>
 <area shape="rect" coords="509,184,648,206" href="/Beethoven-Docs/Beethoven/HW/#platforms"/>
 <area shape="rect" coords="509,68,648,90" href="/Beethoven-Docs/Beethoven/HW/#configuration--build"/>
-<area shape="rect" coords="6,291,179,313" href="/Beethoven-Docs/Beethoven/Platform/AWSF"/>
+<area shape="rect" coords="6,291,179,313" href="/docs/platforms/aws-f2"/>
 <area shape="rect" coords="6,254,179,276" href="/Beethoven-Docs/Beethoven/SW/#memory-modeling"/>
 <area shape="rect" coords="6,226,179,248" href="/Beethoven-Docs/Beethoven/SW/#building"/>
 <area shape="rect" coords="6,198,179,220" href="/Beethoven-Docs/Beethoven/SW/#building"/>
