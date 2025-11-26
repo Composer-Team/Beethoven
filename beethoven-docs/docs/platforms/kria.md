@@ -19,7 +19,11 @@ how we have it working.
 - RHEL 8
 - Vivado 2024.2
 - Vivado cable drivers installed for flashing FPGA over JTAG [[link]](https://digilent.com/reference/programmable-logic/guides/install-cable-drivers). Only do the first command, adding users is unnecessary.
-- Java 17 or older
+- Java 8-21
+
+:::note One-Time Setup
+Cable driver installation is only required once per EDA machine. Subsequent builds use the same drivers.
+:::
 
 ### Kria
 
@@ -31,7 +35,7 @@ how we have it working.
 
 When you've tested your design and are ready to deploy, we'll have to build the accelerator in Synthesis mode.
 
-```java
+```scala title="Kria synthesis build configuration"
 object MyAcceleratorKria extends BeethovenBuild(new MyAcceleratorConfig,
   buildMode = BuildMode.Synthesis,
   platform = new KriaPlatform())
@@ -44,7 +48,7 @@ perfectly.
 
 Now, when you `cd $BEETHOVEN_PATH/build/` on your EDA machine, you'll notice the following files.
 
-```bash
+```bash title="Generated build files"
 (base) [chriskjellqvist@oak build]$ ls
 beethoven              beethoven_hardware.h  hw      synth.tcl             vcs_srcs.in
 beethoven_hardware.cc  cmake_srcs.cmake      ip.tcl  user_constraints.xdc
@@ -55,7 +59,7 @@ In particular, these `.tcl` files are the scripts we generate for building your 
 - `ip.tcl` - generate any Xilinx IPs that you need or declared in your program
 
 You can build your accelerator like so...
-```bash
+```bash title="Run Vivado synthesis"
 # enter the vivado shell
 vivado -mode tcl
 # start synthesizing
@@ -106,7 +110,7 @@ connector to our EDA box for JTAG.
 First thing's first, make sure your environment is set up correctly. In our `~/.bashrc` on kria, it's important that
 we first install the correct C/C++ compilers:
 
-```bash
+```bash title="Install compiler toolchain"
 dnf install g++ gcc python3
 ```
 
@@ -116,7 +120,7 @@ do not have a package for this.
 
 Now, get your `~/.bashrc` in shape. These are the most important lines to have. This assumes that your user is `petalinux`.
 
-```bash
+```bash title="Kria environment variables"
 export CXX=aarch64-xilinx-linux-g++
 export CC=aarch64-xilinx-linux-gcc
 export BEETHOVEN_PATH=/home/petalinux/Beethoven
@@ -139,10 +143,14 @@ cp Beethoven/bin/kria/kria_mm.py ~/
 ```
 
 You should now have the software installed correctly and a file called `kria_mm.py` in your home directory. Because the
-Kria system shares the same DRAM space between FPGA and CPU, the operating system needs to know about any allocations 
+Kria system shares the same DRAM space between FPGA and CPU, the operating system needs to know about any allocations
 that you use in the FPGA, in contrast to the discrete FPGA boards. We use Linux Hugepages make large, physicaly contiguous
 allocations that are accessible from the FPGA and cache coherent with the CPU. However, these pages need to be
 preallocated so we provide this script.
+
+:::warning Hugepage Preallocation
+Hugepages must be allocated BEFORE running your application. The allocator will throw an exception if insufficient pages are available. Plan your memory usage ahead of time.
+:::
 
 Whenever you run the `kria_mm.py` script (sudo required), you should get the following.
 
@@ -194,6 +202,10 @@ page size available. Unfortunately, this means you should have a good idea of ho
 will throw and if it fails to allocate, so these situations should make themselves immediately visible.
 
 ### Moving Over Headers
+
+:::note Sync EDA and Kria
+Keep your EDA machine and Kria in sync by running rsync after every hardware build. The generated headers must match the deployed bitstream.
+:::
 
 It would be a pain to build your hardware and generate the headers on Kria so we use `rsync` to move over all the necessary headers
 from the EDA/development machine.
