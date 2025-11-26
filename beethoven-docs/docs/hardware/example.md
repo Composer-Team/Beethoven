@@ -15,7 +15,7 @@ This walkthrough demonstrates implementing a vector addition accelerator in Beet
 
 Let's implement a vector addition kernel in Beethoven:
 
-```cpp
+```cpp title="Reference C++ implementation"
 // C++ implementation for Vector addition
 void vector_add(int *a, int *b, int *out, int len) {
     for (int i = 0; i < len; ++i)
@@ -39,7 +39,7 @@ integrate Verilog code into Chisel using its [Blackbox](https://www.chisel-lang.
 
 <Tabs>
 	<TabItem value="Chisel" label="Chisel" default>
-```scala
+```scala title="Chisel vector addition module"
 class VectorAdd extends Module {
   val io = IO(new Bundle {
     val vec_a = Flipped(Decoupled(UInt(32.W)))
@@ -101,7 +101,7 @@ at each step.
 
 <Tabs>
         <TabItem value="Implementation" label="Implementation" default>
-```scala
+```scala title="AcceleratorCore skeleton"
 import chisel3._
 import chisel3.util._
 import beethoven._
@@ -112,7 +112,7 @@ class VectorAddCore()(implicit p: Parameters) extends AcceleratorCore {
 ```
 	</TabItem>
 	<TabItem value="Configuration" label="Configuration">
-```scala
+```scala title="AcceleratorConfig"
 class VecAddConfig extends AcceleratorConfig(
 	AcceleratorSystemConfig(
 		nCores = 1,
@@ -229,9 +229,13 @@ Finally, we have all of the primitives we need to connect our vector addition mo
 use it on real hardware.
 Below, you can see the full implementation.
 
+:::note Initialize Outputs
+Always initialize all outputs to prevent latches. Use `false.B` for Bools, `DontCare` for unused signals.
+:::
+
 <Tabs>
         <TabItem value="impl" label="Implementation" default>
-```scala
+```scala title="Complete vector addition core"
 import chisel3._
 import chisel3.util._
 import beethoven._
@@ -307,6 +311,11 @@ class VectorAddCore()(implicit p: Parameters) extends AcceleratorCore {
   }
 }
 ```
+
+:::tip State Machine Pattern
+The state machine waits for all three channels to be ready simultaneously before accepting commands, preventing partial transaction deadlock.
+:::
+
         </TabItem>
         <TabItem value="config" label="Configuration">
 ```scala
