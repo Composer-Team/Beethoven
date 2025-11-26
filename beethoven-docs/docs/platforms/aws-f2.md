@@ -4,7 +4,13 @@ title: AWS F2 Platform
 sidebar_label: AWS F2
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # AWS F2 Implementation Flow
+
+<Tabs>
+<TabItem value="overview" label="Overview & Setup" default>
 
 ## Why AWS F2?
 
@@ -60,6 +66,10 @@ The platform automatically configures:
 - AXI interface widths
 - Shell integration for DDR, DMA, and control interfaces
 
+</TabItem>
+
+<TabItem value="local" label="Local Development">
+
 ## Step 2: Generate Hardware
 
 Run sbt to generate RTL and build scripts:
@@ -81,6 +91,18 @@ This produces:
 │       ├── scripts/      # Vivado TCL scripts
 │       └── constraints/  # Timing/placement XDC files
 ```
+
+### What Gets Generated
+
+- **BeethovenTop.sv**: Your accelerator integrated with Beethoven infrastructure
+- **cl_beethoven_top.sv**: AWS shell wrapper with DDR/DMA interfaces
+- **Accelerator modules**: Your cores and memory interconnect
+- **Build scripts**: Automated Vivado synthesis flow
+- **Constraints**: Floorplanning for 3-die FPGA topology
+
+</TabItem>
+
+<TabItem value="build" label="F2 Build Instance">
 
 ## Step 3: Set Up F2 Build Instance
 
@@ -142,6 +164,10 @@ The build takes 2-4 hours depending on design complexity. Output:
     └── <timestamp>.post_route_timing.rpt
 ```
 
+</TabItem>
+
+<TabItem value="deploy" label="AFI Creation & Deployment">
+
 ## Step 5: Create AFI
 
 After synthesis completes successfully, use `aws-build-mv` to create the AFI:
@@ -181,6 +207,10 @@ sudo fpga-load-local-image -S 0 -I <afi-id>
 fpga-describe-local-image -S 0 -H
 ```
 
+</TabItem>
+
+<TabItem value="reference" label="Reference & Troubleshooting">
+
 ## Troubleshooting
 
 ### Timing Violations
@@ -219,3 +249,7 @@ If targeting F1 instead, use `AWSF1Platform`.
 - [New Platform Guide](/docs/platforms/custom-platform) - Creating custom platforms
 - [Kria Platform](/docs/platforms/kria) - Alternative FPGA target
 - [AWS FPGA Developer Guide](https://github.com/aws/aws-fpga) - AWS HDK documentation
+
+</TabItem>
+
+</Tabs>
