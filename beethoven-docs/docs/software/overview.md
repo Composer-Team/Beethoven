@@ -40,10 +40,14 @@ your environment properly set up (having set your `BEETHOVEN_PATH` environment v
 it should have generated your hardware modules in `$BEETHOVEN_PATH/build/hw` and your C++ linkages
 in `$BEETHOVEN_PATH/build/beethoven_hardware.h` and `$BEETHOVEN_PATH/build/beethoven_hardware.cc`.
 
+:::note BEETHOVEN_PATH Required
+The generated C++ linkages depend on `BEETHOVEN_PATH` being set. Without it, CMake cannot locate the generated headers.
+:::
+
 ### Testbench
 
 The header should have a stub that looks like this:
-```cpp
+```cpp title="Generated C++ interface in beethoven_hardware.h"
 namespace myVectorAdd {
         beethoven::response_handle<bool> vector_add(
             uint16_t core_id,
@@ -57,7 +61,7 @@ namespace myVectorAdd {
 To use our core, let's set up a new CMake project. Your `CMakeLists.txt` will go in the root directory
 of your c++ directory and will look something like this.
 
-```cmake
+```cmake title="CMakeLists.txt for testbench"
 cmake_minimum_required(VERSION 3.30)
 project(vector_add)
 
@@ -72,7 +76,7 @@ If you've installed the Beethoven software library correctly, `find_package` sho
 `beethoven_build` is a function that declares a new target in a similar way to `add_executable`.
 We'll create a new c++ source file called `main.cpp` and insert the boilerplate:
 
-```cpp
+```cpp title="main.cpp boilerplate"
 #include <iostream>
 #include <beethoven/fpga_handle.h>
 #include <beethoven_hardware.h>
@@ -80,7 +84,7 @@ We'll create a new c++ source file called `main.cpp` and insert the boilerplate:
 using namespace beethoven;
 int main() {
   fpga_handle_t handle;
-  
+
 }
 ```
 
@@ -107,7 +111,11 @@ initialize the memory and use it like a normal memory allocation.
 To transfer the allocation over to the accelerator-accessible space, we use
 `handle.copy_to_fpga()`.
 
-```cpp
+:::warning Platform Differences
+On discrete platforms (AWS F2), `copy_to_fpga` performs actual DMA transfers. On embedded platforms (Zynq), it's a no-op since memory is shared. Always use these calls for portability.
+:::
+
+```cpp title="Allocating and initializing memory"
 fpga_handle_t handle;
 int size_of_int = 4;
 int n_eles = 32;
@@ -127,7 +135,7 @@ handle.copy_to_fpga(vec_b);
 
 Now, to call our accelerator we use the stub:
 
-```cpp
+```cpp title="Calling the accelerator"
 auto resp_handle = myVectorAdd::vector_add(0,
                                            vec_a,
                                            vec_b,
@@ -139,7 +147,7 @@ This returns a response handle. Although your accelerator is now executing, your
 continue working until you're ready to block and wait for your code to finish. Then, you
 can copy your results back to host-accessible memory using `handle.copy_from_fpga(...)`.
 
-```cpp
+```cpp title="Waiting for completion and retrieving results"
 auto response = resp_handle.get()
 handle.copy_from_fpga(vec_out);
 ```
@@ -147,6 +155,10 @@ handle.copy_from_fpga(vec_out);
 If you want to check if your code has finished, but not block if it hasn't, then we also offer a `try_get()`.
 The `response` payload will be the struct specified by your accelerator core `BeethovenIO` if you
 specified one. If you specified no response acknowledgement, `.get()` will throw an error.
+
+:::warning Empty Responses
+Calling `.get()` on a response handle from an `EmptyAccelResponse()` will throw an error. Only use `.get()` when your accelerator returns a payload.
+:::
 
 ### Run your code
 
@@ -239,6 +251,10 @@ waveform for your execution.
 In Verilator, CTRL+C is sufficient. For VCS and Icarus, CTRL+C to exit to the simulation
 shell and run `finish`. This will ensure the waveform is properly flushed.
 
+:::note Waveform Flushing
+Always use the `finish` command for VCS and Icarus to ensure waveform files are properly written. Killing the process may corrupt waveform data.
+:::
+
 ## Beethoven Library
 
 The library implements the integration between the user's testbench process and the simulator / FPGA management process.
@@ -253,7 +269,7 @@ generated your hardware. If you've properly set up your environment, you should 
 Whenever you call your function stub with the parameters specified by the `BeethovenIO` interface from your hardware, it will
 return a `beethoven::response_handle<type_t>`.
 
-```cpp
+```cpp title="response_handle interface"
 template<typename t>
 class response_handle {
     t get();
