@@ -67,13 +67,15 @@ const config = {
           src: 'img/favicon.png',
         },
         items: [
+          {to: '/', label: 'Home', position: 'left'},
           {
             type: 'docSidebar',
             sidebarId: 'beethoven',
             position: 'left',
             label: 'Documentation',
           },
-          {to: '/', label: 'Home', position: 'left'},
+          {to: '/tutorials', label: 'Conference Tutorials', position: 'left'},
+          {to: '/papers', label: 'Papers', position: 'left'},
           {
             position: 'left',
             label: 'Project Template',

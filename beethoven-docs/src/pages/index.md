@@ -209,6 +209,19 @@ Clone the [Beethoven Template](https://github.com/Composer-Team/beethoven-templa
 
 ---
 
+## Learn More
+
+### 🎓 **Conference Tutorials**
+Hands-on workshops and tutorials from conferences where Beethoven has been presented.
+- [Conference Tutorials Page](/tutorials) - Workshop materials and presentations
+
+### 📄 **Research & Publications**
+Read peer-reviewed research on Beethoven's architecture and performance.
+- [ISPASS 2025 Paper](/papers) - Framework design and evaluation
+- [All Publications](/papers) - Conference papers and technical reports
+
+---
+
 ## Community & Support
 
 - **Issues & Bugs**: [GitHub Issues](https://github.com/Composer-Team/Beethoven-Software/issues)
