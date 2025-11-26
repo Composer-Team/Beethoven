@@ -10,7 +10,7 @@ An accelerator or a piece of an accelerator is described using an `AcceleratorCo
 is defined as one of a list of `AcceleratorSystemConfig`. `AcceleratorConfigs` can be concatenated with the
 `++` operator to conjoin accelerator descriptions.
 
-```scala
+```scala title="AcceleratorSystemConfig definition"
 case class AcceleratorSystemConfig(
     nCores: Int,
     name: String,
@@ -48,6 +48,10 @@ case class BlackboxBuilderCustom(coreCommand: AccelCommand, coreResponse: AccelR
 
 ## Memory and Communication Topology
 
+:::note Internal-Only Cores
+Cores with `canReceiveSoftwareCommands = false` are only accessible from other cores, not the host.
+:::
+
 `memoryChannelConfig` is where you provide a list of memory interfaces (e.g., Readers, Writers) for a core in this sytem.
 If you intend for an accelerator core to only be internally visible (other cores can communicate with it but not the host,
 then you can specify this using `canReceiveSoftwareCommands`. In such circumstances, we also need to define the communication
@@ -61,7 +65,7 @@ See [Cross-Core Communication](/docs/hardware/cross-core) for more details on mu
 Now that you've constructed an accelerator configuration, you can use a `BeethovenBuild` object to construct your accelerator
 for a given platform like so.
 
-```scala
+```scala title="Creating a build target"
 object MyAcceleratorBuild extends BeethovenBuild(new MyAcceleratorConfig,
     buildMode = <BuildMode>,
     platform = <Your Platform>)
