@@ -8,6 +8,7 @@
 const sidebars = {
   beethoven: [
     'getting-started',
+    'comparison',
     {
       type: 'category',
       label: 'Hardware Stack',
@@ -24,6 +25,8 @@ const sidebars = {
         'hardware/configuration',
         'hardware/verilog',
         'hardware/cross-core',
+        'hardware/floorplanning',
+        'hardware/debugging',
         'hardware/asic-memory-compiler',
       ],
     },
@@ -47,6 +50,7 @@ const sidebars = {
       items: [
         'platforms/kria',
         'platforms/aws-f2',
+        'platforms/u200',
         'platforms/custom-platform',
       ],
     },
