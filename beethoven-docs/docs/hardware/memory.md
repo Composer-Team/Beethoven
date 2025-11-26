@@ -42,7 +42,7 @@ Read channels stream data from external DRAM with automatic prefetching and tran
 
 ### Configuration
 
-```scala
+```scala title="ReadChannelConfig parameters"
 case class ReadChannelConfig(
   name: String,                    // Unique identifier
   dataBytes: Int,                  // Channel width in bytes (power of 2)
@@ -81,6 +81,10 @@ case class ReaderModuleChannel(
 - `requestChannel.bits.address` (Input): Starting address (aligned to `dataBytes`)
 - `requestChannel.bits.len` (Input): Transaction length in bytes (aligned to `dataBytes`)
 
+:::danger Alignment Requirements
+Misaligned addresses or lengths will cause silent data corruption or runtime crashes. Always align both address and length to `dataBytes`.
+:::
+
 **Data Channel** (receive data):
 - `dataChannel.inProgress` (Output): High while transaction is active
 - `dataChannel.data.valid` (Output): High when data is available
@@ -89,7 +93,7 @@ case class ReaderModuleChannel(
 
 ### Usage Example
 
-```scala
+```scala title="Request and consume data"
 // Configuration
 memoryChannelConfig = List(
   ReadChannelConfig("vec_a", dataBytes = 4),
@@ -310,6 +314,10 @@ when (sp.requestChannel.init.ready) {
   state := s_processing
 }
 
+:::warning Init Completion
+Init completion is signaled by `requestChannel.init.ready` going high, NOT by a separate done signal. Check `.ready` to confirm DMA transfer is complete.
+:::
+
 // Read from scratchpad (port 0)
 val port_a = sp.dataChannels(0)
 port_a.req.valid := read_valid
@@ -401,7 +409,7 @@ All input signals are **active-high**, even if the underlying memory uses active
 
 ### Usage Example
 
-```scala
+```scala title="User-managed memory example"
 val my_memory = Memory(
   latency = 2,
   dataWidth = 32,
