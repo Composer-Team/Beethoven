@@ -16,6 +16,10 @@ multiple host C++ interfaces.
 
 ## AccelCommand
 
+:::warning Type Restrictions
+Stick to basic types (UInt, SInt, Bool, Address ≤128b) for reliable C++ code generation. Complex types may cause build issues.
+:::
+
 While we have supported arbitrary types inside `AccelCommand` in the past, maintaining the transformation between
 arbitrary Chisel types and C++ is complex so we recommend using basic types for the most consistent results. The
 recommended types are, `UInt`, `SInt`, `Bool`, and `Address`. These types may be at most 128b long. There is no
@@ -27,6 +31,10 @@ encode commands using the RISC-V RoCC instruction format. RoCC instructions are 
 pack with routing information) and two 64-bit payloads. We pack the user-specified operands without fragmentation
 into these payloads. Communicating a single instruction takes ~10µs over PCIE. Therefore, expect a multiple of
 this delay for the number of 128-bit payloads necessary to communicate your `AccelCommand`.
+
+:::note Communication Latency
+Each 128-bit payload takes ~10µs over PCIe. Minimize command frequency for latency-sensitive applications.
+:::
 
 `AccelCommand` takes a name as input. This will be used to construct the C++ host binding for this command.
 The accelerator will be accessible from host as `<Core-Name>::<Command-Name>`.
@@ -40,7 +48,7 @@ of completion for a command, you can use `EmptyAccelResponse()`.
 Beethoven also allows you to return a response with a payload up to 64-bits wide. For longer payloads, we
 recommend writing results to memory.
 
-```scala
+```scala title="AccelResponse with payload"
 val my_io = BeethovenIO(...,
     AccelResponse(responseName) {
         ...
@@ -52,7 +60,7 @@ For instance:
 
 <Tabs>
 <TabItem value="cmd" label="BeethovenIO" default>
-```scala
+```scala title="Defining a command with response"
 // inside MyCore
 val my_io = BeethovenIO(
     new AccelCommand("my_command"){...},
@@ -63,7 +71,7 @@ val my_io = BeethovenIO(
 ```
 </TabItem>
 <TabItem value="cpp" label="Generated C++">
-```cpp
+```cpp title="Generated C++ interface"
 namespace MyCore {
     beethoven::response_handle<my_response_t> my_command(...);
 
@@ -77,6 +85,10 @@ namespace MyCore {
 </Tabs>
 
 ## Behavior of BeethovenIO
+
+:::danger Protocol Violation
+Never drive `req.ready` high without a corresponding response. This violates the protocol and causes host hangs.
+:::
 
 Both the command and response are coupled with ready/valid handshakes.
 For the command, the user drives the ready signal and for the response, the user drives the valid signal.
