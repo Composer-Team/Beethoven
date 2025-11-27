@@ -9,6 +9,10 @@ Composer is a hardware accelerator development framework centered around **Beeth
 - **Beethoven-Hardware**: Scala/Chisel codebase for hardware generation (RTL synthesis, protocols, memory systems)
 - **Beethoven-Software**: C++ runtime library and simulation infrastructure
 
+## Branding Guidelines
+
+**IMPORTANT**: Never mention "CUDA" in documentation, code comments, or any project materials. CUDA is a trademark and should not be referenced when describing Beethoven.
+
 ## Build Commands
 
 ### Hardware Generation (Scala/Chisel)

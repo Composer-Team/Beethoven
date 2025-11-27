@@ -34,6 +34,146 @@ Beethoven provides abstractions for accessing both off-chip DRAM and on-chip mem
 
 </TabItem>
 
+<TabItem value="alignment" label="Alignment Requirements">
+
+## Alignment Requirements
+
+All memory transactions in Beethoven must be properly aligned to avoid data corruption and runtime errors. This is a fundamental hardware requirement, not a software convenience.
+
+### Core Rules
+
+**Rule 1: Address Alignment**
+- All memory addresses (read, write, scratchpad init/writeback) must be aligned to `dataBytes`
+- Formula: `address % dataBytes == 0`
+
+**Rule 2: Length Alignment**
+- All transaction lengths must be aligned to `dataBytes`
+- Formula: `length % dataBytes == 0`
+
+**Rule 3: Applies to All Channels**
+- Read channels (`ReadChannelConfig`)
+- Write channels (`WriteChannelConfig`)
+- Scratchpad init/writeback operations (`ScratchpadConfig`)
+
+:::danger Critical Requirement
+Misaligned addresses or lengths will cause **silent data corruption** or **runtime crashes**. The hardware will not detect or report alignment violations.
+:::
+
+### Examples
+
+**Valid Alignments (4-byte channel, `dataBytes = 4`):**
+```cpp
+// ✅ Correct - address aligned to 4 bytes
+uint32_t* data = allocate(1024);  // Returns 4-byte aligned address
+auto resp = myCore::read(0, (remote_ptr)data, 1024);  // length=1024 is 4-byte aligned
+```
+
+**Valid Alignments (64-byte channel, `dataBytes = 64`):**
+```cpp
+// ✅ Correct - both address and length aligned to 64 bytes
+void* buffer = aligned_alloc(64, 4096);  // 64-byte aligned address
+auto resp = myCore::dma_read(0, (remote_ptr)buffer, 4096);  // length=4096 is 64-byte aligned
+```
+
+**Invalid Alignments:**
+```cpp
+// ❌ WRONG - address not aligned (4-byte channel)
+auto resp = myCore::read(0, 0x1002, 1024);  // 0x1002 % 4 != 0
+
+// ❌ WRONG - length not aligned (4-byte channel)
+auto resp = myCore::read(0, 0x1000, 1023);  // 1023 % 4 != 0
+
+// ❌ WRONG - both misaligned (64-byte channel)
+auto resp = myCore::read(0, 0x1040, 4100);  // 0x1040 % 64 != 0, 4100 % 64 != 0
+```
+
+### Quick Reference: Checking Alignment
+
+**In Hardware (Scala/Chisel):**
+```scala
+// Check if address is aligned to dataBytes
+val is_aligned = (addr % dataBytes.U) === 0.U
+
+// Common dataBytes values and their alignment
+// dataBytes = 4  → addresses must be multiples of 4 (0x0, 0x4, 0x8, ...)
+// dataBytes = 8  → addresses must be multiples of 8 (0x0, 0x8, 0x10, ...)
+// dataBytes = 64 → addresses must be multiples of 64 (0x0, 0x40, 0x80, ...)
+```
+
+**In Software (C++):**
+```cpp
+// Ensure aligned allocation
+void* buffer = aligned_alloc(dataBytes, total_size);
+
+// Check alignment at runtime
+assert((uintptr_t)buffer % dataBytes == 0);
+assert(transaction_length % dataBytes == 0);
+```
+
+### Why Alignment Matters
+
+**Hardware Requirement:**
+- Memory controllers and AXI fabric require aligned transactions for correct operation
+- Unaligned accesses may be split into multiple sub-transactions with undefined behavior
+- Width conversion logic assumes aligned boundaries
+
+**Performance Impact:**
+- Misaligned transactions can cause significant performance degradation
+- May trigger exceptions or stalls in the memory subsystem
+
+### Consequences of Misalignment
+
+| Issue | Symptom |
+|-------|---------|
+| **Silent Data Corruption** | Wrong data read/written without error messages |
+| **Runtime Crashes** | Segmentation faults or bus errors on FPGA |
+| **Simulation Mismatches** | Works in simulation but fails on hardware |
+| **Undefined Behavior** | Unpredictable results, non-deterministic failures |
+
+### Debugging Alignment Issues
+
+If you suspect alignment problems:
+
+1. **Check your addresses:**
+   ```cpp
+   printf("Address: 0x%lx, aligned: %s\n", addr,
+          (addr % dataBytes == 0) ? "YES" : "NO");
+   ```
+
+2. **Check your lengths:**
+   ```cpp
+   printf("Length: %zu, aligned: %s\n", len,
+          (len % dataBytes == 0) ? "YES" : "NO");
+   ```
+
+3. **Review allocations:** Ensure you're using `aligned_alloc()` or platform-specific aligned allocation
+
+4. **Check calculations:** Address arithmetic (e.g., `base + offset`) may produce misaligned results
+
+See the [Debugging Guide](/docs/hardware/debugging) for more troubleshooting steps.
+
+### Platform-Specific Notes
+
+**AWS F2:**
+- Typical `dataBytes`: 64 (512-bit memory interface)
+- Use `aligned_alloc(64, size)` for allocations
+
+**Kria/Zynq:**
+- Typical `dataBytes`: 4-8 (32-64 bit interfaces)
+- Shared memory with ARM may have stricter requirements
+
+**Simulation:**
+- DRAMsim3 enforces alignment requirements
+- Test alignment compliance in simulation before FPGA deployment
+
+### See Also
+
+- [Read Channels](#read-channels) - Request channel alignment requirements
+- [Write Channels](#write-channels) - Data channel alignment requirements
+- [Debugging Guide](/docs/hardware/debugging) - Troubleshooting misalignment errors
+
+</TabItem>
+
 <TabItem value="read" label="Read Channels">
 
 ## Read Channels

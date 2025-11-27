@@ -11,7 +11,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Beethoven',
-  tagline: '',
+  tagline: 'High-Level RTL Hardware Accelerator Development Framework for FPGAs and ASICs',
   favicon: 'img/favicon.png',
 
   // Set the production url of your site here
@@ -58,8 +58,6 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      // Replace with your project's social card
-      image: 'img/docusaurus-social-card.jpg',
       navbar: {
         title: 'Beethoven',
         logo: {

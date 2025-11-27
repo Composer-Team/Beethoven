@@ -6,34 +6,13 @@ Hands-on tutorials and workshop materials from conferences where Beethoven has b
 
 ## Upcoming Tutorials
 
-*Check back for upcoming conference tutorials and workshops.*
+[HPCA 2026](https://conf.researchr.org/attending/hpca-2026/pre-conference#beethoven)
 
 ---
 
 ## Past Conference Workshops
 
-### ISPASS 2025 - Building Hardware Accelerators with Beethoven
-
-*Workshop materials coming soon.*
-
-**Topics Covered:**
-- Introduction to the Beethoven framework
-- Your first hardware accelerator
-- Multi-core accelerator design
-- Deployment to AWS F2 and Xilinx platforms
-
----
-
-## Additional Learning Resources
-
-Looking for more ways to learn Beethoven?
-
-- **[Getting Started Guide](/docs/getting-started)** - Step-by-step setup and first project
-- **[Example Walkthrough](/docs/hardware/example)** - Complete vector addition accelerator
-- **[Platform Guides](/docs/platforms/kria)** - Deploy to Kria, AWS F2, or U200
-- **[GitHub Template](https://github.com/Composer-Team/Beethoven-Template)** - Start coding immediately
-
----
+[ISCA 2025](https://www.iscaconf.org/isca2025/program/workshops.php)
 
 ## Questions?
 

@@ -4,7 +4,7 @@
     <img src="img/favicon.png" alt="icon" width="400" />
 </p>
 
-<p align="center" style="font-size: 1.5em; font-weight: 500; margin-top: 1em;">
+<p align="center" style={{fontSize: '1.5em', fontWeight: 500, marginTop: '1em'}}>
 Hardware acceleration for FPGA and ASIC, simplified
 </p>
 
@@ -12,7 +12,7 @@ Hardware acceleration for FPGA and ASIC, simplified
 
 ## What is Beethoven?
 
-Beethoven is **CUDA for FPGA/ASIC** - a complete framework that makes hardware acceleration accessible. Write your accelerator in Chisel, and Beethoven handles the rest: automatic C++ bindings, multi-platform deployment, memory management, and runtime infrastructure.
+Beethoven is a complete framework that makes hardware acceleration accessible. Write your accelerator in Chisel, and Beethoven handles the rest: automatic C++ bindings, multi-platform deployment, memory management, and runtime infrastructure.
 
 **Design once. Deploy everywhere.** From simulation to AWS F2 to Xilinx Kria to custom ASICs.
 
@@ -69,7 +69,7 @@ Change one line (`platform = new KriaPlatform`) and rebuild. Same design now run
 
 ## Key Features
 
-### 🚀 **Automatic Software Integration**
+### **Automatic Software Integration**
 Your `BeethovenIO` interface becomes a type-safe C++ function. No manual command encoding, no register maps, no guesswork.
 
 ```scala
@@ -93,7 +93,7 @@ namespace MyCore {
 }
 ```
 
-### 🌍 **Multi-Platform Deployment**
+### **Multi-Platform Deployment**
 Write once, deploy anywhere. Beethoven abstracts platform details:
 - **AWS F2/F1**: 3-die cloud FPGAs with automatic AFI generation
 - **Xilinx Kria**: Embedded Zynq UltraScale+ boards
@@ -101,7 +101,7 @@ Write once, deploy anywhere. Beethoven abstracts platform details:
 - **Simulation**: Verilator, VCS, Icarus Verilog
 - **Custom Platforms**: Define your own (ASIC, custom FPGA)
 
-### 💾 **Memory Made Simple**
+### **Memory Made Simple**
 Forget AXI4 protocol specs. Request memory interfaces by name:
 
 ```scala
@@ -115,7 +115,7 @@ reader.requestChannel.bits.len := num_bytes
 
 Beethoven generates DMA engines, handles protocol conversion, and manages physical memory channels.
 
-### 🏗️ **Multi-Core Architectures**
+### **Multi-Core Architectures**
 Build complex heterogeneous systems with multiple accelerator types:
 - Automatic resource allocation across cores
 - Core-to-core communication topology
@@ -123,7 +123,7 @@ Build complex heterogeneous systems with multiple accelerator types:
 
 Example: 23-core transformer attention accelerator deployed on AWS F2.
 
-### 🔧 **Full Hardware Control**
+### **Full Hardware Control**
 Beethoven doesn't hide hardware complexity - it manages it. You still write Chisel (or Verilog via blackboxes), with full access to:
 - Custom datapaths and pipelines
 - Scratchpads and on-chip memory
@@ -195,27 +195,27 @@ Performance comparable to hand-written RTL. Development time measured in days, n
 
 ## Get Started Now
 
-### 📚 **New to Beethoven?**
+### **New to Beethoven?**
 Start with the [Getting Started Guide](/docs/getting-started) and [Vector Addition Example](/docs/hardware/example).
 
-### 🎯 **Specific Use Case?**
+### **Specific Use Case?**
 - [Multi-die FPGAs](/docs/hardware/floorplanning) - SLR partitioning and floorplanning
 - [AWS F2 Deployment](/docs/platforms/aws-f2) - Cloud FPGA acceleration
 - [Embedded Systems](/docs/platforms/kria) - Xilinx Kria/Zynq boards
 - [Debugging](/docs/hardware/debugging) - Simulation and FPGA debugging
 
-### 🛠️ **Ready to Build?**
+### **Ready to Build?**
 Clone the [Beethoven Template](https://github.com/Composer-Team/beethoven-template) and start coding.
 
 ---
 
 ## Learn More
 
-### 🎓 **Conference Tutorials**
+### **Conference Tutorials**
 Hands-on workshops and tutorials from conferences where Beethoven has been presented.
 - [Conference Tutorials Page](/tutorials) - Workshop materials and presentations
 
-### 📄 **Research & Publications**
+### **Research & Publications**
 Read peer-reviewed research on Beethoven's architecture and performance.
 - [ISPASS 2025 Paper](/papers) - Framework design and evaluation
 - [All Publications](/papers) - Conference papers and technical reports
@@ -230,6 +230,6 @@ Read peer-reviewed research on Beethoven's architecture and performance.
 
 ---
 
-<p align="center" style="margin-top: 2em; font-style: italic;">
+<p align="center" style={{marginTop: '2em', fontStyle: 'italic'}}>
 Hardware acceleration shouldn't be this hard. Beethoven makes it simple.
 </p>
