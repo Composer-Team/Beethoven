@@ -6,7 +6,7 @@ Hands-on tutorials and workshop materials from conferences where Beethoven has b
 
 ## Upcoming Tutorials
 
-[HPCA 2026](https://conf.researchr.org/attending/hpca-2026/pre-conference#beethoven)
+[ISCA 2026](https://iscaconf.org/isca2026/)
 
 ---
 

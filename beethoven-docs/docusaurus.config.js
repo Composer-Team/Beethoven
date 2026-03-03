@@ -18,7 +18,7 @@ const config = {
   url: 'https://composer-team.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/Beethoven-Docs/',
+  baseUrl: '/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
@@ -65,14 +65,15 @@ const config = {
           src: 'img/favicon.png',
         },
         items: [
-          {to: '/', label: 'Home', position: 'left'},
+          { to: '/', label: 'Home', position: 'left' },
+          {to: '/isca26', label: 'Tutorial@ISCA', position: 'left'},
           {
             type: 'docSidebar',
             sidebarId: 'beethoven',
             position: 'left',
             label: 'Documentation',
           },
-          {to: '/tutorials', label: 'Conference Tutorials', position: 'left'},
+          { to: '/tutorials', label: 'Conference Tutorials', position: 'left' },
           {to: '/papers', label: 'Papers', position: 'left'},
           {
             position: 'left',
