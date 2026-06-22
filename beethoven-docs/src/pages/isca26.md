@@ -19,7 +19,7 @@ In this hands-on tutorial, you will master the entire lifecycle of accelerator d
 ## 📅 Tutorial Details
 
 - 🕒 **Date:** Saturday, June 27, 8:00 AM – 1:00 PM
-- 🥪🌯🥗 Boxed Lunch from the Convention Center Catering is provided for the FIRST 20 Participants who complete the tutorial!
+- 🥪🌯🥗 Boxed Lunch from the Convention Center Catering is provided for the FIRST 20 Participants who participate and complete the tutorial!
 - 👥 **Expected Audience:** 10–30 participants. Researchers, industry professionals, and anyone interested in accelerator technologies are welcome. No prior FPGA or Beethoven knowledge required!
 
 ### 🎤 Organizers
