@@ -19,8 +19,8 @@ In this hands-on tutorial, you will master the entire lifecycle of accelerator d
 ## 📅 Tutorial Details
 
 - 🕒 **Date:** Saturday, June 27, 8:00 AM – 1:00 PM
-- 👥 **Expected Audience:** 10–30 participants. Researchers, industry professionals, and anyone interested in accelerator technologies are welcomed. No prior FPGA or Beethoven knowledge required!
-
+- 🥪🌯🥗 Boxed Lunch from the Convention Center Catering is provided for the FIRST 20 Participants who start and complete the tutorial!
+- 👥 **Expected Audience:** 10–30 participants. Researchers, industry professionals, and anyone interested in accelerator technologies are welcome. No prior FPGA or Beethoven knowledge required!
 
 ### 🎤 Organizers
 - **Lisa Wu Wills** (Duke University, [lisa@cs.duke.edu](mailto:lisa@cs.duke.edu))
