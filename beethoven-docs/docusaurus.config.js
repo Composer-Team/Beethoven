@@ -77,8 +77,13 @@ const config = {
           {to: '/papers', label: 'Papers', position: 'left'},
           {
             position: 'left',
-            label: 'Project Template',
-            to: 'https://github.com/Composer-Team/Beethoven-Template'
+            label: 'Beethoven Zoo',
+            to: 'https://github.com/Composer-Team/Beethoven-Zoo'
+          },
+          {
+            position: 'left',
+            label: 'Beethoven CLI',
+            to: 'https://github.com/Composer-Team/Beethoven-Software/releases'
           },
           {
             href: 'https://github.com/Composer-Team/Beethoven-Hardware',
