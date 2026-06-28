@@ -196,7 +196,8 @@ Performance comparable to hand-written RTL. Development time measured in days, n
 ## Get Started Now
 
 ### **New to Beethoven?**
-Start with the [Getting Started Guide](/docs/getting-started) and [Vector Addition Example](/docs/hardware/example).
+<!-- Start with the [Getting Started Guide](/docs/getting-started) and [Vector Addition Example](/docs/hardware/example). -->
+Start installing Beethoven using [Beethoven CLI Tools](https://github.com/Composer-Team/Beethoven-Software/releases) and see demo examples at [Beethoven Zoo](https://github.com/Composer-Team/Beethoven-Zoo).
 
 ### **Specific Use Case?**
 - [Multi-die FPGAs](/docs/hardware/floorplanning) - SLR partitioning and floorplanning
@@ -204,8 +205,13 @@ Start with the [Getting Started Guide](/docs/getting-started) and [Vector Additi
 - [Embedded Systems](/docs/platforms/kria) - Xilinx Kria/Zynq boards
 - [Debugging](/docs/hardware/debugging) - Simulation and FPGA debugging
 
-### **Ready to Build?**
-Clone the [Beethoven Template](https://github.com/Composer-Team/beethoven-template) and start coding.
+### Tutorial Slide
+Follow our [ISCA26 Tutorial slides](/img/tutorial_slide_deck.pdf) for more references!
+
+### CheatSheet
+A Beethoven-related-command [cheatsheet](/img/beethoven_cli_cheatsheet.pdf) is provided!
+<!-- ### **Ready to Build?**
+Clone the [Beethoven Template](https://github.com/Composer-Team/beethoven-template) and start coding. -->
 
 ---
 
