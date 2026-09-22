@@ -1,8 +1,6 @@
-# Beethoven Tutorial at ISCA 2026
+# Upcoming Tutorial for Beethoven at MICRO 2026
 
-:::info
-This tutorial took place on June 27, 2026. Join our next one at [MICRO 2026](/micro26)!
-:::
+**Beethoven: Tutorial for An Open-Source Accelerator Composer**: held at [MICRO 2026](https://microarch.org/micro59/), the 59th IEEE/ACM International Symposium on Microarchitecture, in Athens, Greece.
 
 
 ## 🚀 Overview
@@ -15,15 +13,15 @@ Welcome to the **Beethoven Tutorial**, your gateway to mastering open-source acc
 In this hands-on tutorial, you will master the entire lifecycle of accelerator development:
 
 - **Build from Scratch:** Learn to design a custom hardware accelerator core from the ground up using Beethoven's high-level abstractions.
-- **Real-World Deployment:** Go beyond RTL-level simulation: You will watch your design work end-to-end on a live AWS EC2 F2 instance.
+- **Real-World Deployment:** Go beyond RTL-level simulation: You will watch your design work end-to-end on an edge FPGA and a live AWS EC2 F2 instance.
 - **Full-Stack Integration:** Discover how hardware accelerators are seamlessly integrated into software stacks.
 - **Measure Speedups:** Witness firsthand how specialized hardware provides significant performance improvements for real-world workloads.
 
 
 ## 📅 Tutorial Details
 
-- 🕒 **Date:** Saturday, June 27, 8:00 AM – 1:00 PM
-- 🥪🌯🥗 Boxed Lunch from the Convention Center Catering is provided for the FIRST 20 Participants who participate and complete the tutorial!
+- 🕒 **Date:** Saturday, October 31, 2026, 1:00 PM – 5:00 PM EET
+- 📍 **Location:** Athens, Greece ([MICRO 2026 Workshops & Tutorials](https://microarch.org/micro59/program/workshops-new.php))
 - 👥 **Expected Audience:** 10–30 participants. Researchers, industry professionals, and anyone interested in accelerator technologies are welcome. No prior FPGA or Beethoven knowledge required!
 
 ### 🎤 Organizers
@@ -31,25 +29,9 @@ In this hands-on tutorial, you will master the entire lifecycle of accelerator d
 - **Chris Kjellqvist** (Duke University)
 - **Mason Ma** (Duke University)
 - **Mansi Choudhary** (Duke University)
-- **Ning Liang** (Duke University)
 
 
-## 🗓️ Tutorial Schedule
-
-| 🕒 Duration | 📖 Topic |
-|----------|-------|
-| 30 min | 🎵 Intro to Beethoven & Hardware Landscape |
-| 20 min | 🧩 Chisel Preface |
-| 30 min | 🧩 Code Structures and Abstractions |
-| 20 min | 🧩 Memory Streams |
-| 20 min | 🧩 Accelerator Configuration |
-| 20 min | 🧩 On-Chip Memory Abstractions |
-| 20 min | 🧩 Software Integration and Test Benches |
-| 30 min | ⚙️ Hands-on: Build a Simple Accelerator Core |
-| 50 min | ⚙️ Hands-on: Generate an Accelerated System |
-| 30 min | 📊 Hands-on: Performance & Power Evaluation |
-
-### ☁️ Infrastructure
+## ☁️ Infrastructure
 Participants will get hands-on experience with AWS EC2 F2 cloud instances generously funded by Duke University. Deploy and experiment with your Beethoven-generated systems in the cloud seamlessly!
 
 ## 👩‍🏫 Speaker Bios
@@ -61,10 +43,7 @@ Assistant Professor of Computer Science and ECE at Duke University. Prior to Duk
 Chris is the lead architect of the Beethoven framework. His research leverages modern hardware description languages’ flexible, generative abilities and programming abstractions to provide scalable and reusable SoC infrastructure for hardware accelerator development.
 
 ### [Mason Ma](https://jiaaom.github.io)
-A fifth-year PhD student in Computer Science at Duke University. His research focuses on efficient software and hardware design for privacy-preserving computing, with a particular emphasis on advancing fully homomorphic encryption (FHE) through optimizations in arithmetic, compilers, and hardware accelerators. He has developed hardware architectures and ML compilers that optimize FHE computations, achieving significant speedups and efficiency improvements for privacy-preserving natural language processing and data analysis tasks.
+A sixth-year PhD student in Computer Science at Duke University. His research focuses on efficient software and hardware design for privacy-preserving computing, with a particular emphasis on advancing fully homomorphic encryption (FHE) through optimizations in arithmetic, compilers, and hardware accelerators. He has developed hardware architectures and ML compilers that optimize FHE computations, achieving significant speedups and efficiency improvements for privacy-preserving natural language processing and data analysis tasks.
 
 ### [Mansi Choudhary](https://scholars.duke.edu/person/mansi.choudhary)
-A fourth-year PhD student in ECE at Duke University. Her primary area of research is computer architecture, with an emphasis on workload analysis, performance modeling, and hardware acceleration through architectural and microarchitectural enhancements for domain-specific applications, including AI. Her work aims to improve performance and power efficiency in these systems.
-
-### [Ning Liang](https://www.linkedin.com/in/ning-liang-960621220/)
-A second-year PhD student in Computer Science at Duke University. Ning's research investigates hardware and software optimizations for more efficient and accurate LLM serving systems. Specifically, his work focuses on accelerating vector databases and retrieval-augmented generation.
+A fifth-year PhD student in ECE at Duke University. Her primary area of research is computer architecture, with an emphasis on workload analysis, performance modeling, and hardware acceleration through architectural and microarchitectural enhancements for domain-specific applications, including AI. Her work aims to improve performance and power efficiency in these systems.

@@ -66,7 +66,7 @@ const config = {
         },
         items: [
           { to: '/', label: 'Home', position: 'left' },
-          {to: '/isca26', label: 'Tutorial@ISCA', position: 'left'},
+          {to: '/micro26', label: 'Tutorial@MICRO', position: 'left'},
           {
             type: 'docSidebar',
             sidebarId: 'beethoven',
