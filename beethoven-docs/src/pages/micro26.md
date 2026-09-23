@@ -36,7 +36,7 @@ In this hands-on tutorial, you will master the entire lifecycle of accelerator d
 | 🕒 Duration | 📖 Topic |
 |----------|-------|
 | 30 min | 🎵 Intro to Beethoven & Hardware Landscape |
-| 20 min | 🧩 Quick Start |
+| 10 min | 🧩 Quick Start in 10 Minutes |
 | 20 min | 🧩 Motivation |
 | 30 min | 🧩 Code Structures and Abstractions |
 | 20 min | 🧩 Accelerator Configuration |
@@ -44,7 +44,7 @@ In this hands-on tutorial, you will master the entire lifecycle of accelerator d
 | 20 min | 🧩 Memory Interface |
 | 20 min | 🧩 On-Chip Memory Abstractions |
 | 20 min | 🧩 Software Stack and Testing |
-| 30 min | ⚙️ Hands-on and Demo: Running your project on Embedded and Datacenter FPGA |
+| 30 min | ⚙️ Hands-on and Demo on Embedded and Datacenter FPGA |
 | 30 min | 📊 Hands-on: Performance & Power Evaluation |
 
 
