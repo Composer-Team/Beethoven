@@ -1,6 +1,6 @@
-# Upcoming Tutorial for Beethoven at MICRO 2026
+# Beethoven Tutorial at MICRO 2026
 
-**Beethoven: Tutorial for An Open-Source Accelerator Composer**: held at [MICRO 2026](https://microarch.org/micro59/), the 59th IEEE/ACM International Symposium on Microarchitecture, in Athens, Greece.
+**Tutorial for Beethoven - An Open-Source Accelerator Composer**: held at [MICRO 2026](https://microarch.org/micro59/), the 59th IEEE/ACM International Symposium on Microarchitecture, in Athens, Greece.
 
 
 ## 🚀 Overview
@@ -29,6 +29,23 @@ In this hands-on tutorial, you will master the entire lifecycle of accelerator d
 - **Chris Kjellqvist** (Duke University)
 - **Mason Ma** (Duke University)
 - **Mansi Choudhary** (Duke University)
+
+
+## 🗓️ Tutorial Schedule
+
+| 🕒 Duration | 📖 Topic |
+|----------|-------|
+| 30 min | 🎵 Intro to Beethoven & Hardware Landscape |
+| 20 min | 🧩 Quick Start |
+| 20 min | 🧩 Motivation |
+| 30 min | 🧩 Code Structures and Abstractions |
+| 20 min | 🧩 Accelerator Configuration |
+| 20 min | 🧩 Host-Accelerator Interface |
+| 20 min | 🧩 Memory Interface |
+| 20 min | 🧩 On-Chip Memory Abstractions |
+| 20 min | 🧩 Software Stack and Testing |
+| 30 min | ⚙️ Hands-on and Demo: Running your project on Embedded and Datacenter FPGA |
+| 30 min | 📊 Hands-on: Performance & Power Evaluation |
 
 
 ## ☁️ Infrastructure
